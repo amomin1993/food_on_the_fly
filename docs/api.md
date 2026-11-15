@@ -9,9 +9,16 @@ Project-wide path constants and typed config dataclasses.
 ```python
 from food_on_the_fly.config import (
     PROJECT_ROOT,
-    DATA_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR,
-    MODELS_DIR, REPORTS_DIR, FIGURES_DIR,
-    Config, TrainingConfig, DataConfig, DEFAULT_CONFIG,
+    DATA_DIR,
+    RAW_DATA_DIR,
+    PROCESSED_DATA_DIR,
+    MODELS_DIR,
+    REPORTS_DIR,
+    FIGURES_DIR,
+    Config,
+    TrainingConfig,
+    DataConfig,
+    DEFAULT_CONFIG,
 )
 ```
 

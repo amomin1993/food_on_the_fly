@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
@@ -104,8 +104,67 @@ jobs:
       - name: Run tests with pytest
         run: pytest tests/ --cov=food_on_the_fly --cov-report=xml
 
+      - name: Coverage summary
+        run: coverage report --skip-empty | tail -n 1
+
       - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
+
+  docker-build:
+    name: Build and smoke-test Docker images
+    needs: lint-and-test
+    if: ${{ !cancelled() && needs.lint-and-test.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build training image
+        run: docker build -f dockerfiles/Dockerfile -t fof-train:ci .
+
+      - name: Build API image
+        run: docker build -f dockerfiles/Dockerfile.api -t fof-api:ci .
+
+      - name: Start API container
+        run: docker run -d --name fof-api -p 8080:8080 fof-api:ci
+
+      - name: Health check
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8080/health && break
+            sleep 2
+          done
+          curl -sf http://localhost:8080/health | python3 -c "
+          import json, sys
+          body = json.load(sys.stdin)
+          assert body['model_loaded'], body
+          print('health ok:', body)
+          "
+
+      - name: Prediction smoke test
+        run: |
+          curl -sf -X POST http://localhost:8080/predict \
+            -H "Content-Type: application/json" \
+            -d '{"Delivery_person_Age": 30.0, "Delivery_person_Ratings": 4.5,
+                 "Restaurant_latitude": 22.745049, "Restaurant_longitude": 75.892471,
+                 "Delivery_location_latitude": 22.765049,
+                 "Delivery_location_longitude": 75.912471,
+                 "Order_Date": "19-03-2022", "Time_Orderd": "17:30",
+                 "Weather_conditions": "Sunny", "Road_traffic_density": "Low",
+                 "Vehicle_condition": 2, "Type_of_order": "Snack",
+                 "Type_of_vehicle": "motorcycle", "multiple_deliveries": 0.0,
+                 "Festival": "No", "City": "Urban"}' \
+            | python3 -c "
+          import json, sys
+          body = json.load(sys.stdin)
+          t = body['predicted_time_min']
+          assert 0 < t < 120, body
+          print('prediction ok:', body)
+          "
+
+      - name: Container logs
+        if: always()
+        run: docker logs fof-api || true

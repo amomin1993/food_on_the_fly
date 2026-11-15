@@ -26,12 +26,15 @@ pip install ipdb
 
 **Method 1: Inline breakpoint**
 ```python
-import pdb; pdb.set_trace()  # Execution pauses here
+import pdb
+
+pdb.set_trace()  # Execution pauses here
 ```
 
 **Method 2: Post-mortem debugging**
 ```python
 import pdb
+
 try:
     risky_operation()
 except Exception:
@@ -63,7 +66,9 @@ logger.info("Training XGBoost model...")
 train_start = time.perf_counter()
 
 # ADD THIS LINE:
-import ipdb; ipdb.set_trace()
+import ipdb
+
+ipdb.set_trace()
 
 with SystemMetricsLogger(interval_seconds=0.1):
     pipeline.fit(X_train, y_train)
@@ -105,10 +110,12 @@ def load_processed(filename: str) -> pd.DataFrame:
     df = pd.read_csv(path)
 
     # ADD VALIDATION:
-    if 'Time_taken (min)' in df.columns:
-        invalid = df['Time_taken (min)'] < 0
+    if "Time_taken (min)" in df.columns:
+        invalid = df["Time_taken (min)"] < 0
         if invalid.any():
-            logger.warning(f"Removing {invalid.sum()} rows with negative delivery times")
+            logger.warning(
+                f"Removing {invalid.sum()} rows with negative delivery times"
+            )
             df = df[~invalid]
 
     return df
@@ -133,7 +140,9 @@ In `src/food_on_the_fly/train_model.py`, line 164:
 y_val_pred = pipeline.predict(X_val)
 
 # ADD THIS LINE:
-import ipdb; ipdb.set_trace()
+import ipdb
+
+ipdb.set_trace()
 
 # Calculate metrics
 ```

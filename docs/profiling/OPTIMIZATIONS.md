@@ -35,7 +35,7 @@ for i in range(len(df)):
 
 **After** (vectorized):
 ```python
-distance = np.sqrt((lat1 - lat2)**2 + (lon1 - lon2)**2) * 111.0  # Approximate km
+distance = np.sqrt((lat1 - lat2) ** 2 + (lon1 - lon2) ** 2) * 111.0  # Approximate km
 ```
 
 **Impact**:
