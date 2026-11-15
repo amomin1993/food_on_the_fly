@@ -139,7 +139,7 @@
     <div class="card">
       <h2>Route <em id="distance">0.0 km</em></h2>
       <div id="map"></div>
-      <div class="map-help">Drag 🍽️ (restaurant) and 🏠 (customer) to change the route. The model uses the straight-line distance between them.</div>
+      <div class="map-help">Drag 🍔 (restaurant) and 🏠 (customer) to change the route. The model uses the straight-line distance between them.</div>
       <details class="coords">
         <summary>Edit coordinates</summary>
         <div class="coord-grid">
@@ -295,9 +295,11 @@ const pin = (emoji) => L.divIcon({ className: "", html: `<div class="pin">${emoj
 function initMap(r, d) {
   if (typeof L === "undefined") { $("map").style.display = "none"; return; }
   map = L.map("map", { zoomControl: true, attributionControl: true });
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    maxZoom: 19, attribution: "&copy; OpenStreetMap &copy; CARTO" }).addTo(map);
-  rMarker = L.marker(r, { draggable: true, icon: pin("🍽️") }).addTo(map);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 16, attribution: "Tiles &copy; Esri" }).addTo(map);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 16 }).addTo(map);
+  rMarker = L.marker(r, { draggable: true, icon: pin("🍔") }).addTo(map);
   dMarker = L.marker(d, { draggable: true, icon: pin("🏠") }).addTo(map);
   line = L.polyline([r, d], { color: "#ff7a45", weight: 3, dashArray: "6 8" }).addTo(map);
   [rMarker, dMarker].forEach((m) => m.on("drag", () => { syncFromMap(); }).on("dragend", schedule));
