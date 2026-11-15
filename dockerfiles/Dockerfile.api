@@ -19,6 +19,8 @@ COPY --from=builder /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
+# Serve the committed pipeline artifact; override with MODEL_URI for MLflow.
+ENV MODEL_PATH=/app/models/pipeline.joblib
 
 COPY . .
 RUN pip install --no-cache-dir -e .
