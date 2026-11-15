@@ -67,7 +67,12 @@ jobs:
             --region="${{ secrets.GCP_REGION }}" \
             --platform=managed \
             --allow-unauthenticated \
-            --port=8080
+            --port=8080 \
+            --cpu=1 \
+            --memory=1Gi \
+            --min-instances=0 \
+            --max-instances=2 \
+            --service-account="fof-api-runtime@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com"
 
       - name: Show deployed URL
         run: |
