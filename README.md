@@ -60,6 +60,17 @@ flowchart TD
 
 Detailed data, training, serving and CI/CD diagrams are in [docs/architecture.md](docs/architecture.md).
 
+## Live Deployment
+
+- **Prediction API (Cloud Run):** https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app (interactive docs at [`/docs`](https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/docs))
+- **Demo video:** DEMO_VIDEO_LINK
+- **How it is deployed:** [DEPLOYMENT.md](DEPLOYMENT.md) · **Teardown and cost:** [CLEANUP.md](CLEANUP.md) · **Changes:** [CHANGELOG.md](CHANGELOG.md)
+
+```bash
+curl -s https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/health
+# {"status":"ok","model_loaded":true,"model_version":"pipeline.joblib"}
+```
+
 ## Phase Deliverables
 
 ### Phase 1: Project Design & Model Development

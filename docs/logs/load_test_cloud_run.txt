@@ -1,0 +1,23 @@
+# scripts/load_test.py --url https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app --rate 600 --duration 60 --seed 42
+# Run from Cloud Shell against revision food-on-the-fly-api-00001-bv5, 2026-11-15
+Load test: 600 req/min for 60 s
+============================================================
+  Food on the Fly — Load Test Results
+============================================================
+  Target rate   : 600.0 req/min  (10.00 req/s)
+  Duration      : 60.0 s
+  URL           : https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app
+
+  Requests
+    Total        :  600
+    Success (2xx):  600  (100.0%)
+    Errors        :    0  (0.0%)
+    Actual RPS    :  10.00 req/s
+
+  Latency (ms)
+    p50          :    32.4
+    p95          :    38.7
+    p99          :    50.5
+    min          :    28.4
+    max          :   140.2
+============================================================
