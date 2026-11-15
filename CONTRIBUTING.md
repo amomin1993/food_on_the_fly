@@ -191,17 +191,31 @@ So the same training script runs identically locally and in cloud.
 
 ## How CI/CD works
 
-Two workflows govern the repo:
+Three workflows govern the repo:
 
 ### `pr-checks.yml` runs on every PR
 
-Three sequential jobs. Each must pass before the next runs:
+Four sequential jobs. Each must pass before the next runs:
 
 1. **Validate branch name** — must be `feature/*` or `fix/*` for PRs to dev.
 2. **Validate branch direction** — must be `feature/* | fix/* → dev` or `dev → main`.
-3. **Lint and test** — ruff, mypy, pytest.
+3. **Lint and test** — ruff lint, ruff format check, mypy, pytest with coverage on Python 3.11 and 3.12.
+4. **Docker build** — builds the training and API images, starts the API container, and checks `/health` and `/predict`.
 
 If any job fails, downstream jobs are skipped and the PR is blocked.
+
+**Testing requirements for a PR:**
+
+- New code under `src/` comes with tests in `tests/`.
+- `make lint` and `make test` pass locally before you push (pre-commit runs ruff and mypy for you).
+- Anything that changes the API request or response shape updates `docs/http_api.md`.
+- Anything that changes model quality should be visible in the CML comment (below).
+
+### `cml.yml` runs on every PR and on pushes to `dev` and `main`
+
+Trains the baseline config on the runner, writes `metrics.txt` and four plots,
+compares the metrics to `reports/baseline_metrics.json`, and posts the whole
+report as a PR comment. See `docs/cml.md`.
 
 ### `deploy.yml` runs after `pr-checks` succeeds on `main`
 

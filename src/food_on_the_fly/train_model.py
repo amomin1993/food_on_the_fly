@@ -347,7 +347,13 @@ def main(cfg: DictConfig) -> None:
         logger.info("CML outputs generated: metrics.txt + 4 PNG files")
 
         # Log model to MLflow
-        mlflow.sklearn.log_model(pipeline, "model")
+        # Explicit pip_requirements skips MLflow's dependency inference,
+        # which profiling showed was ~30% of training wall-clock time.
+        mlflow.sklearn.log_model(
+            pipeline,
+            "model",
+            pip_requirements=["scikit-learn", "xgboost", "pandas", "numpy"],
+        )
         logger.info("Model logged to MLflow")
 
         # Save pipeline locally for serving (Gradio app / Cloud Run)
