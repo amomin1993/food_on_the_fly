@@ -85,9 +85,14 @@ say "Build service account for Cloud Functions (new orgs give the default one no
 BUILDER_SA="fof-builder@${PROJECT_ID}.iam.gserviceaccount.com"
 gcloud iam service-accounts describe "$BUILDER_SA" >/dev/null 2>&1 \
   || gcloud iam service-accounts create fof-builder --display-name="Food on the Fly function builds"
-gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-  --member="serviceAccount:${BUILDER_SA}" --role=roles/cloudbuild.builds.builder \
-  --condition=None >/dev/null
+# A brand new service account can take a minute before IAM will bind it.
+for i in 1 2 3 4 5 6; do
+  gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+    --member="serviceAccount:${BUILDER_SA}" --role=roles/cloudbuild.builds.builder \
+    --condition=None >/dev/null && break
+  echo "Service account not visible to IAM yet, retrying in 15s ($i/6)"
+  sleep 15
+done
 
 say "Packaging the Cloud Function"
 SRC="$(mktemp -d)"
