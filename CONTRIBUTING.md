@@ -197,10 +197,10 @@ Three workflows govern the repo:
 
 Four sequential jobs. Each must pass before the next runs:
 
-1. **Validate branch name** — must be `feature/*` or `fix/*` for PRs to dev.
-2. **Validate branch direction** — must be `feature/* | fix/* → dev` or `dev → main`.
-3. **Lint and test** — ruff lint, ruff format check, mypy, pytest with coverage on Python 3.11 and 3.12.
-4. **Docker build** — builds the training and API images, starts the API container, and checks `/health` and `/predict`.
+1. **Validate branch name**: must be `feature/*` or `fix/*` for PRs to dev.
+2. **Validate branch direction**: must be `feature/* | fix/* → dev` or `dev → main`.
+3. **Lint and test**: ruff lint, ruff format check, mypy, pytest with coverage on Python 3.11 and 3.12.
+4. **Docker build**: builds the training and API images, starts the API container, and checks `/health` and `/predict`.
 
 If any job fails, downstream jobs are skipped and the PR is blocked.
 

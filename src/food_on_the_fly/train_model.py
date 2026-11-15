@@ -347,12 +347,20 @@ def main(cfg: DictConfig) -> None:
         logger.info("CML outputs generated: metrics.txt + 4 PNG files")
 
         # Log model to MLflow
-        # Explicit pip_requirements skips MLflow's dependency inference,
-        # which profiling showed was ~30% of training wall-clock time.
+        # Explicit requirements skip MLflow's dependency inference (slow, and
+        # it conflicts with uv.lock pins on newer MLflow). cloudpickle because
+        # MLflow 3.x defaults to skops, which rejects our custom transformers.
         mlflow.sklearn.log_model(
             pipeline,
             "model",
-            pip_requirements=["scikit-learn", "xgboost", "pandas", "numpy"],
+            serialization_format="cloudpickle",
+            pip_requirements=[
+                "scikit-learn",
+                "xgboost",
+                "pandas",
+                "numpy",
+                "cloudpickle",
+            ],
         )
         logger.info("Model logged to MLflow")
 

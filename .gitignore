@@ -165,3 +165,6 @@ multirun/
 
 # CML local test artifact
 comparison.md
+
+# Committed sample logs
+!docs/logs/*.log
