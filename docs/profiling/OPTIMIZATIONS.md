@@ -10,7 +10,7 @@ snakeviz reports/profiling/train_model.prof   # interactive view
 
 ## Baseline profile
 
-Measured with `make profile` on the `xgboost_baseline` config, 21,513 training rows.
+Measured with `make profile` on the `xgboost_baseline` config, 20,838 training rows.
 Environment: Linux x86_64, Python 3.11, dependencies from `uv.lock`
 (mlflow 3.13.0, scikit-learn 1.9.0, xgboost 3.2.0), warm package cache.
 
@@ -62,7 +62,7 @@ November the very first run after a fresh install took 7.27 s and the next
 ones about 4.1 s with no code change at all. Only the time inside
 `log_model` is attributable to this change, and on today's MLflow the
 inference step is much cheaper than it was in May (about 0.05 s), so the
-honest saving is the 0.4 s in the table above.
+saving that can be attributed to it is the 0.4 s in the table above.
 
 **Why it still matters: it makes training work on current MLflow.** CI
 installs the newest MLflow that `pyproject.toml` allows (3.18 in November).
