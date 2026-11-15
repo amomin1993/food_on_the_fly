@@ -1,8 +1,7 @@
 # Docs Directory
 
-**[Detailed Completion R](docs/detailed_phase1_completion_guide.md)**
+**[Detailed Phase 1 Completion Guide](./detailed_phase1_completion_guide.md)**
 **[View Transformers New vs Old](./images/test_results/MLflow_results.png)**
-**[Transformer Comparison](images/phase1_transformer_comparison.png)**
 
 Store project documentation built with MkDocs here.
 

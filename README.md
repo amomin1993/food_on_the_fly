@@ -58,6 +58,8 @@ flowchart TD
     end
 ```
 
+Detailed data, training, serving and CI/CD diagrams are in [docs/architecture.md](docs/architecture.md).
+
 ## Phase Deliverables
 
 ### Phase 1: Project Design & Model Development
@@ -326,17 +328,37 @@ grep "xgboost_optimized" logs/food_on_the_fly.log
 - `WARNING`: Warning messages
 - `ERROR`: Error messages
 
-# Run tests locally
+### 🧪 Testing
 
-    pytest tests/ -v --cov=food_on_the_fly --cov-report=html
+```bash
+# Run tests locally with coverage
+pytest tests/ -v --cov=food_on_the_fly --cov-report=html
 
 # View coverage report
+open htmlcov/index.html
 
-    open htmlcov/index.html
+# Run pre-commit hooks (ruff lint + format, mypy, whitespace, YAML)
+pre-commit run --all-files
+```
 
-# Run pre-commit hooks
+Data-dependent tests (`test_data_quality.py`, `test_training_pipeline.py`) skip
+automatically when `data/raw/zomato_dataset.csv` or `data/processed/*.csv` are
+missing. Run `make data` first to execute them. In CI the same checks run on
+every PR through `.github/workflows/pr-checks.yml`.
 
-    pre-commit run --all-files
+### 🔧 Troubleshooting
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `ruff format --check` fails in CI on files you did not touch | CI installs the latest ruff, which also formats code blocks inside Markdown | Run `ruff format .` locally with the same ruff version and commit the result |
+| `command not found: python` on macOS | macOS ships `python3` only | Use `python3`, or activate the project venv so `python` resolves |
+| `error: externally-managed-environment` on `pip install` | Homebrew/system Python blocks global installs (PEP 668) | Create a venv: `python3 -m venv .venv && source .venv/bin/activate` |
+| Training is slow at the very end of a run | MLflow infers pip requirements by scanning installed packages | Already fixed: `log_model` passes explicit `pip_requirements` (see `docs/profiling/OPTIMIZATIONS.md`) |
+| `FileNotFoundError` for `data/processed/train.csv` | Splits not generated yet | Run `make data`, or pass `data.source_uri=<path to zomato_dataset.csv>` |
+| `gcsfs` / `DefaultCredentialsError` when loading data | `data.source_uri` points at GCS without credentials | Run `gcloud auth application-default login`, or override `data.source_uri` with a local path |
+| Duplicate log lines in the console | `setup_logging()` called more than once (Hydra + API startup) | Fixed: `setup_logging()` now clears existing handlers before adding new ones |
+| API `/predict` returns 503 | No model found at `MODEL_PATH` / `MODEL_URI` | Set `MODEL_PATH=models/pipeline.joblib` (the API image does this by default) |
+| Docker build fails on Apple Silicon when deploying to Cloud Run | Image built for arm64, Cloud Run needs amd64 | Build with `docker build --platform linux/amd64 ...` or use Cloud Build |
 
 ## Setup Instructions
 
@@ -541,35 +563,27 @@ make docs
 
 ## Team Contributions
 
-- [ ] **Abdul** - [Add contributions]
-- [x] **Aviv** - Platform & Deployment: Hydra/MLflow, temporal features, config pipelines, Docker, CML
-- [x] **Jose** - Project lead, infrastructure
-- [x] **Imran** - Data exploration & EDA notebook, data quality tests, feature transformer tests, load testing, data card & feature dictionary, Streamlit UI, concept drift simulation
+| Member | Role | Phase 1 | Phase 2 | Phase 3 |
+| --- | --- | --- | --- | --- |
+| **Jose Muniz** | Project lead, platform | Repo scaffold, CI with ruff/mypy/pytest, feature→dev→main branch rules, README and PHASE1 drafts, `REPORT.md` (#21, #22, #23) | Training pipeline integration (#25), monitoring + cProfile profiling + Hydra sweep + Rich logging (#30) | FastAPI inference service with `/health`, `/predict`, `/predict/batch` (#48) |
+| **Aviv Katz** | Training pipeline, CML, Docker | Hydra + MLflow + XGBoost integration (#16) | Temporal features (#27, #28), MLflow system metrics, Python 3.11 base image (#36), multi-model configs (#37), rotating file logs (#40) | CML workflow (#44), version-tag deploy trigger (#46), Phase 3 docs (#43), config toggles + leakage-safe temporal split (#52), temporal features v2 (#50) |
+| **Imran Ahmed** | Data, testing, UI | EDA notebook (#20) | Data quality tests (#32), feature transformer tests (#33) | Load test script (#55), data card + feature dictionary (#58), Gradio UI (#59), concept drift simulation (#60) |
+| **Abdul Momin** | Modeling lead | Baseline MLflow tracking script (#18) | Profiling-driven `log_model` optimization (#42) | Current-vs-baseline CML comparison (#53), CML docs (#56); v1.1.0 completion: CI Docker build + smoke test, Python 3.12 matrix, deploy and logging fixes, HTTP API and architecture docs, Phase 1-3 evidence audit |
 
-### Detailed Table
-
-| Team Member | Phase 1                                                                                                | Phase 2 | Phase 3 |
-| ----------- | ------------------------------------------------------------------------------------------------------ | ------- | ------- |
-| **Aviv**    | Hydra+MLflow+XGBoost integration (PR#16)<br>Multi-model configs (PR#37)<br>Haversine transformer       |
-| (PR#1)      | Temporal features (PR#27, #28)<br>System metrics & observability (PR#36)<br>Rotating file logs (PR#40) |
-
-Config-driven feature toggles<br>Temporal split with data leakage prevention<br>**Critical bug fix:** Pipeline
-integration (RMSE: 8.34→4.70, R²: 0.32→0.74)<br>CML workflow (PR#44)<br>Docker deployment
-(PR#46)<br>Documentation (PR#43)<br>Test suite development <br>Temporal split with data leakage prevention<br>Test suite development (test_evaluation.py, test_temporal_split.py)<br> date format handling |
-| **Jose** | TBD | TBD | TBD |
-| **Abdul** | TBD | TBD | TBD |
-| **Imran** | TBD | TBD | TBD |
+PR numbers link to the merged pull requests in the original team repository
+(`josemunizdev/food_on_the_fly`). Full history, with each author on their own
+commits, is preserved in this fork.
 
 ## Contribution Summary
 
-- [ ] Team members have been assigned
-- [ ] Development environment has been set up
-- [ ] Initial data exploration completed
-- [ ] Model baseline established
-- [ ] Evaluation metrics defined
-- [ ] Documentation updated
-- [ ] All tests passing
-- [ ] Code reviewed and merged
+- [x] Team members have been assigned (roles in the table above)
+- [x] Development environment has been set up (`pyproject.toml`, `uv.lock`, `CONTRIBUTING.md`)
+- [x] Initial data exploration completed (`notebooks/data_visual_noteb.ipynb`, data card in `docs/data.md`)
+- [x] Model baseline established (val RMSE 4.01 min, R² 0.82, see `REPORT.md`)
+- [x] Evaluation metrics defined (RMSE, MAE, R², `src/food_on_the_fly/evaluation/metrics.py`)
+- [x] Documentation updated (`PHASE1.md`, `PHASE2.md`, `PHASE3.md`, `docs/`)
+- [x] All tests passing (`.github/workflows/pr-checks.yml`)
+- [x] Code reviewed and merged (PR-gated `dev` and `main`)
 
 ## References
 

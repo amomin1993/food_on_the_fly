@@ -20,7 +20,7 @@ Phase 1 establishes the foundation for your MLOps project. This phase covers pro
 ## 2. Code Organization & Setup
 
 - [x] **GitHub Repository**: Created with SE 489 MLOps cookiecutter structure
-- [x] **Environment Setup**: `pyproject.toml` defines Python 3.13+ requirement; `pip install -e .` for editable install
+- [x] **Environment Setup**: `pyproject.toml` requires Python `>=3.11,<3.14` (CI and Docker use 3.11); `pip install -e .` for editable install; `uv.lock` for reproducible resolution
 - [x] **Dependency Management**: `requirements.txt` (runtime) and `requirements_dev.txt` (dev tools) maintained
 - [x] **Project Structure**: `src/` layout with clear separation — `data/`, `features/`, `models/`, `evaluation/`, `visualization/`, `utils/`
 - [x] **Version Pinning**: All dependencies pinned with `>=` lower bounds in `pyproject.toml` and `requirements.txt`
@@ -34,7 +34,7 @@ Phase 1 establishes the foundation for your MLOps project. This phase covers pro
 - [x] **Branching Strategy**: `feature/* → dev → main` workflow enforced via PR template and CI
 - [x] **Pull Request Process**: PR template in `.github/PULL_REQUEST_TEMPLATE.md`; CI must pass before merge
 - [x] **Team Roles**: Project Lead (Jose), team members Abdul, Aviv, Imran defined in README
-- [ ] **Code Review Guidelines**: To be documented in `CONTRIBUTING.md`
+- [x] **Code Review Guidelines**: `CONTRIBUTING.md` section "Branch and PR rules" (automatic Copilot review plus at least one human teammate; feature -> dev -> main enforced by CI); `.github/CODEOWNERS`
 - [x] **Commit History**: Clean history; bad merges reverted and re-routed through dev
 
 ---
@@ -42,24 +42,24 @@ Phase 1 establishes the foundation for your MLOps project. This phase covers pro
 ## 4. Data Handling
 
 - [x] **Data Cleaning Scripts**: `make_dataset.py` — loads Zomato CSV, cleans target column, filters bad rows, parses dates, produces temporal + random splits
-- [ ] **Normalization**: To be implemented in sklearn pipeline during model training
-- [ ] **Data Augmentation**: Not applicable for tabular regression task
+- [x] **Normalization**: `StandardScaler` on numeric features and `OneHotEncoder` on categoricals inside the sklearn `ColumnTransformer` (`train_model.py` lines 148-157), so the same transforms apply at training and inference
+- [ ] **Data Augmentation**: Not applicable for a tabular regression task (no synthetic rows; the drift window is held out instead)
 - [x] **Data Documentation**: 19 features documented — lat/lon pairs, timestamps, weather, traffic density, vehicle type, multiple deliveries, festival flag, city tier
 - [x] **Data Splits**: 70 / 15 / 15 train/val/test on first 40 days; last 14 days reserved as drift set
-- [ ] **Data Validation**: To be implemented
+- [x] **Data Validation**: `tests/test_data_quality.py` (nulls, negative/zero targets, target range, coordinate bounds, city values) and split assertions in `make_dataset.py` lines 82-90
 - [x] **DVC Setup**: DVC initialized; `data/processed/` (train, val, test, drift CSVs) tracked with `.dvc` files
 
 ---
 
 ## 5. Model Training
 
-- [ ] **Training Environment**: Local CPU; GPU not required for tabular regression
+- [x] **Training Environment**: Local CPU; GPU not required for tabular regression. Same code runs in the training Docker image and the CML GitHub Actions runner
 - [x] **Baseline Model**: `BaseModel` ABC + `Model` scaffold in `src/food_on_the_fly/models/`; training entrypoint in `train_model.py`
-- [ ] **Hyperparameter Configuration**: `configs/config.yaml` via Hydra — to be populated with chosen estimator params
+- [x] **Hyperparameter Configuration**: Hydra model group in `configs/model/` (`xgboost_baseline`, `xgboost_fast`, `xgboost_optimized`), all overridable from the CLI
 - [x] **Evaluation Metrics**: `evaluation/metrics.py` — `regression_report` (MAE, MSE, RMSE, R²) and `classification_report`
 - [x] **Model Persistence**: `Model.save()` / `Model.load()` via joblib
 - [x] **Training Reproducibility**: `utils/seed.py` seeds Python, NumPy, and optional torch/tf RNGs; `--seed` CLI arg
-- [ ] **Performance Baseline**: To be documented after first training run
+- [x] **Performance Baseline**: Val RMSE 4.01 min, MAE 3.19 min, R² 0.8207 (train R² 0.8354), documented in `REPORT.md`
 
 ---
 
@@ -70,15 +70,15 @@ Phase 1 establishes the foundation for your MLOps project. This phase covers pro
   - [x] Setup and installation instructions
   - [x] Quick start guide for running training
   - [x] Dependencies and requirements
-  - [ ] Contributing guidelines (CONTRIBUTING.md pending)
+  - [x] Contributing guidelines (`CONTRIBUTING.md`)
   - [x] License information
 - [x] **Code Docstrings**: Module-level and function docstrings throughout `src/`
 - [x] **Code Style**: ruff configured in `pyproject.toml` (`E`, `F`, `I`, `N`, `W`, `B`, `UP` rules, 88-char line length)
 - [x] **Type Hints**: Type annotations throughout codebase
 - [x] **Type Checking**: mypy configured (`disallow_untyped_defs = true`, `warn_return_any = true`)
 - [x] **Makefile**: Commands for `install`, `dev`, `data`, `train`, `predict`, `test`, `lint`, `format`, `clean`, `docker_build`, `docker_run`, `docs`
-- [ ] **CONTRIBUTING.md**: To be created
-- [ ] **API Documentation**: Planned for Phase 2/3 (FastAPI)
+- [x] **CONTRIBUTING.md**: Setup, GCP auth, branch and PR rules, daily workflow
+- [x] **API Documentation**: Python package API in `docs/api.md`; HTTP API documented in `docs/http_api.md` (Phase 3)
 
 ---
 
