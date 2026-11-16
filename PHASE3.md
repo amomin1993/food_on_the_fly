@@ -20,31 +20,31 @@ One entry per item of the Phase 3 template, each with the files, a screenshot, a
 
 - **Files:** `.github/workflows/pr-checks.yml`
 - **Screenshot:** ![All checks green on PR #2](docs/images/phase3/ci_checks_green.png)
-- **Explanation:** Every pull request runs six checks before it can merge: branch name and direction rules, ruff, mypy and pytest on Python 3.11 & 3.12, a Docker build that starts the API container and calls `/health` and `/predict`, and also the CML job. The same checks run again on `main` after a merge, and the Cloud Run deployment only starts if they pass.
+- **Explanation:** Every pull request runs six checks before it can merge: branch name and direction rules, ruff, mypy and pytest on Python 3.11 & 3.12, a Docker build that starts the API container and calls `/health` and `/predict`, and also the CML job. The same checks run again on `main` after a merge, and the Cloud Run deployment only starts if they pass. The workflows do not run `dvc pull`. The DVC remote from Phase 1 is a Google Drive folder that needs a browser sign-in, so the CML job reads the raw CSV from the Cloud Storage bucket instead, and the tests use synthetic data or skip when the real dataset is missing.
 
 ### 1.3 Pre-commit hooks
 
 - **Files:** `.pre-commit-config.yaml`; setup steps in `CONTRIBUTING.md` and README "Testing"
 - **Screenshot:** ![pre-commit run](docs/images/phase3/precommit_run.png)
-- **Explanation:** Pre-commit runs ruff lint and format, mypy, and whitespace and YAML checks on all local commits, which are the same rules CI enforces. We have to catch them befor a formatting error pops up. Setup is `pre-commit install` and is once per clone.
+- **Explanation:** Pre-commit runs ruff lint and format, mypy, and whitespace and YAML checks on all local commits, which are the same rules CI enforces. We have to catch them before a formatting error pops up. Setup is `pre-commit install` and is once per clone.
 
 ### 2.1 Automated Docker builds
 
 - **Files:** `.github/workflows/pr-checks.yml` (job `docker-build`, every PR), `.github/workflows/deploy.yml` (build and push on every commit to `main`), `dockerfiles/Dockerfile`, `dockerfiles/Dockerfile.api`
 - **Screenshot:** ![Artifact Registry images](docs/images/phase3/artifact_registry.png)
-- **Explanation:** Both images are built on every pull request, and the API image is smoke tested before the PR can merge. Every commit that reaches `main` builds the API image again, tags it with the commit SHA reference, pushes it to Artifact Registry and deploys it to Cloud Run. Tagging by SHA means any running version can be traced back to its code and rolled back by redeploying the older tag.
+- **Explanation:** Both images are built on every pull request, and the API image is smoke tested before the PR can merge. Every commit that reaches `main` builds the API image again, tags it with the commit SHA reference, pushes it to Artifact Registry and deploys it to Cloud Run. Tagging by SHA means any running version can be traced back to its code and rolled back by redeploying the older tag. The images are pushed to Artifact Registry only and not to Docker Hub. Cloud Run and Vertex AI pull from Artifact Registry in the same project, and a Docker Hub push would need a stored password, which the keyless sign-in avoids.
 
 ### 2.2 Continuous Machine Learning (CML)
 
 - **Files:** `.github/workflows/cml.yml`, `scripts/compare_to_baseline.py`, `reports/baseline_metrics.json`, `docs/cml.md`
 - **Screenshot:** ![CML comment on PR #2](docs/images/phase3/cml_pr_comment.png)
-- **Explanation:** CML trains the baseline XGBoost config on Github for every push to a PR and posts the metrics back as a PR comment. The comment compares the PR's model with the stored baseline in `reports/baseline_metrics.json`, so a change that makes the model worse will show up in review. On PR #2 validation RMSE went from 5.08 to 4.83 minutes. The four plots are attached to the run as the `cml-plots` artifacts.
+- **Explanation:** CML trains the baseline XGBoost config on GitHub for every push to a PR and posts the metrics back as a PR comment. The comment compares the PR's model with the stored baseline in `reports/baseline_metrics.json`, so a change that makes the model worse will show up in review. On PR #2 validation RMSE went from 5.08 to 4.83 minutes. The four plots are attached to the run as the `cml-plots` artifacts.
 
 ### 3.1 GCP Artifact Registry
 
 - **Files:** `scripts/gcp_setup.sh` (repository, service accounts, Workload Identity Federation), `.github/workflows/deploy.yml`
 - **Screenshot:** ![Artifact Registry repository](docs/images/phase3/artifact_registry.png)
-- **Explanation:** One Artifact Registry repository in `us-central1` holds both images: `api` for serving and `train` for Vertex AI. GitHub Actions pushes to it through Workload Identity Federation limited to this repository, so no service account keys exist anywhere. The setup script creates the repository, service accounts, and federation in one run.
+- **Explanation:** One Artifact Registry repository in `us-central1` held both images: `api` for serving and `train` for Vertex AI (the `train` image was deleted in the cleanup, see 6.3). GitHub Actions pushes to it through Workload Identity Federation limited to this repository, so no service account keys exist anywhere. The setup script creates the repository, service accounts, and federation in one run.
 
 ### 3.2 Custom training job on GCP (Vertex AI)
 
@@ -80,18 +80,18 @@ One entry per item of the Phase 3 template, each with the files, a screenshot, a
   ```
 
 - **Screenshot:** ![Cloud Run service](docs/images/phase3/cloud_run_service.png)
-- **Explanation:** The FastAPI container runs on Cloud Run with 1 vCPU, between 0 and 2 instances. Scaling to zero keeps the idle cost at 0, at the price of a cold start of a few seconds on the first request. A load test of 600 requests at 10 per second had a 100% success rate with a p95 latency of 39 ms.
+- **Explanation:** The FastAPI container runs on Cloud Run with 1 vCPU, between 0 and 2 instances. Scaling to zero keeps the idle cost at 0, at the price of a cold start on the first request after an idle period, which took 10 to 16 seconds when I checked. A load test of 600 requests at 10 per second had a 100% success rate with a p95 latency of 39 ms.
 
 ### 4.1 UI on Hugging Face Spaces
 
 - **Files:** `app/index.html` (Space), `app/app.py` (Gradio version for local use), `.github/workflows/deploy-hf.yml`
 - **Space:** https://huggingface.co/spaces/amomin1993/food-on-the-fly
 - **Screenshot:** ![Hugging Face Space](docs/images/phase3/hf_space.png)
-- **Explanation:** The Space is a web page that sends each prediction request to the Cloud Run API, so the model runs in one place for every client. GitHub Actions uploads the app folder to the Space on every push to `main` that changes it. Hugging Face's free tier now only hosts static Spaces (bummer!), so the page is plain HTML... ; the Gradio version in `app/app.py` does the same thing and runs locally. I believe hugging face changed their tiers very recently.
+- **Explanation:** The Space is a web page that sends each prediction request to the Cloud Run API, so the model runs in one place for every client. GitHub Actions uploads the app folder to the Space on every push to `main` that changes it. Hugging Face's free tier now only hosts static Spaces (bummer!), so the page is plain HTML. The Gradio version in `app/app.py` does the same thing and runs locally. I believe Hugging Face changed their tiers very recently.
 
 ### 5.1 End-to-end demo recording
 
-- **Recording:** embedded at the top of [README.md](README.md#demo-and-live-deployment)
+- **Recording:** narrated screen recording of the deployed app, linked and embedded at the top of [README.md](README.md#demo-and-live-deployment). The assignment asks for the recording to be in the README, so this file only points to it.
 
 ### 6.1 README
 
@@ -107,7 +107,7 @@ One entry per item of the Phase 3 template, each with the files, a screenshot, a
 
 - **Files:** `CLEANUP.md`
 - **Screenshot:** ![Cleaned-up GCP console](docs/images/phase3/gcp_cleanup.png)
-- **Explanation:** After the demo was recorded, the Cloud Function, the training image and older API images were deleted with the commands in `CLEANUP.md`. The Cloud Run service and its current image stay up until grading because the Hugging Face app depends on them, and they cost nothing while idle (i made sure). The full teardown is listed in the same file as well.
+- **Explanation:** After the demo was recorded, the Cloud Function, the training image and older API images were deleted with the commands in `CLEANUP.md`. The Cloud Run service and its current image stay up until grading because the Hugging Face app depends on them, and they cost nothing while idle (I made sure). The full teardown is listed in the same file as well.
 
 ### Extra: monitoring
 
