@@ -22,8 +22,8 @@ Phase 2 focuses on scaling and operationalizing Food on the Fly by implementing 
   - Evidence: CI job `PR checks / Build and smoke-test Docker images` (`.github/workflows/pr-checks.yml`) builds both images on every PR, starts the API container and asserts `/health` reports a loaded model and `/predict` returns a delivery time; it passed on PR #1. The same API image is the one deployed to Cloud Run (see PHASE3.md)
 - [x] **Docker Compose (Optional)**: Create docker-compose.yml for multi-service setups
   - Evidence: `docker-compose.yaml` (mounts data, models, mlruns and gcloud credentials; exposes 8000 and 5001 on a bridge network)
-- [ ] **Environment Consistency**: Verify that containerized training produces identical results to local training
-  - Not verified end to end: the training image is built in CI but training is not run inside it there, because the dataset is not baked into the image. Seeds are pinned (`random_state: 42`) and repeated local runs give identical metrics (val RMSE 4.83 for `xgboost_baseline`)
+- [x] **Environment Consistency**: Verify that containerized training produces identical results to local training
+  - Evidence: the training image (`dockerfiles/Dockerfile`, pushed as `train:20a3dd6`) was run as a Vertex AI custom job on 2026-11-15 with `model=xgboost_optimized`, and the same config was trained locally on the same data. Both runs used scikit-learn 1.9.1, XGBoost 3.2.0, pandas 3.1.1 and NumPy 2.4.6, and produced identical metrics: train RMSE 3.24 / MAE 2.59 / R² 0.8787, validation RMSE 3.95 / MAE 3.12 / R² 0.8234 (container output in `gs://food-on-the-fly-data-amomin/models/20261115-225611/metrics.txt`, screenshot `docs/images/phase3/vertex_job.png`). Seeds are pinned with `random_state: 42`
 
 ---
 

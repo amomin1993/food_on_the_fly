@@ -50,7 +50,19 @@ flowchart LR
     CR_box -->|stdout logs| CL[Cloud Logging]
     CR -->|request count, latency,<br/>instances| CM[Cloud Monitoring]
     AR[(Artifact Registry<br/>api:commit-sha)] -->|image| CR
-    GR[Gradio app<br/>app/app.py] -.->|deploy-hf.yml| HF[Hugging Face Spaces]
+    HF[Hugging Face Space<br/>app/index.html] -->|browser fetch, CORS| CR
+    GH[deploy-hf.yml] -.->|upload app/| HF
+    CF[Cloud Function fof-predict<br/>same schemas + pipeline.joblib] -->|stdout logs| CL
+```
+
+## Cloud training
+
+```mermaid
+flowchart LR
+    GCS[(gs://food-on-the-fly-data-amomin<br/>data/raw/zomato_dataset.csv)] --> VX
+    AR[(Artifact Registry<br/>train:commit-sha)] -->|image| VX[Vertex AI custom job<br/>n1-standard-4, fof-trainer]
+    VX -->|temporal split, train<br/>xgboost_optimized| UP[upload_artifacts.py]
+    UP --> M[(gs://.../models/run-id/<br/>pipeline.joblib, metrics.txt,<br/>plots, log)]
 ```
 
 ## CI/CD

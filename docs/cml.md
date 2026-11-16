@@ -29,7 +29,7 @@ The workflow runs on:
 - `push` to `main` or `dev`
 - `pull_request` targeting `main` or `dev`
 
-The PR comment (step 8) is only created on `pull_request` events. Pushes train
+The PR comment (step 9) is only created on `pull_request` events. Pushes train
 the model and validate the pipeline but do not post a comment.
 
 ## Prerequisites
@@ -62,24 +62,36 @@ order:
    the train/validation/test splits.
 7. **Train the model** with `python -m food_on_the_fly.train_model
    model=xgboost_baseline`, which writes `metrics.txt` and the plot PNGs.
-8. **Create and post the CML report** (PRs only).
+8. **Upload CML plots**: the four PNGs and `metrics.txt` are attached to the
+   run as the `cml-plots` artifact. (They used to be uploaded to CML's image
+   host with `--publish`, which started failing with server errors.)
+9. **Create and post the CML report** (PRs only).
 
 ## Metrics format
 
-`train_model.py` writes `metrics.txt` in a plain-text, two-section format:
+`train_model.py` writes `metrics.txt` in a plain-text, two-section format
+(numbers from the PR #2 run):
+
+```
 === TRAINING METRICS ===
-RMSE: 5.08 minutes
-MAE:  3.99 minutes
-R2:   0.7088
+RMSE: 4.73 minutes
+MAE:  3.76 minutes
+R²:   0.7418
+
 === VALIDATION METRICS ===
-RMSE: 5.08 minutes
-MAE:  3.99 minutes
-R2:   0.7088The CML comment embeds this verbatim inside a code block. RMSE and MAE are in
+RMSE: 4.83 minutes
+MAE:  3.81 minutes
+R²:   0.7363
+```
+
+The CML comment embeds this verbatim inside a code block. RMSE and MAE are in
 minutes; R2 is the coefficient of determination.
 
 ## Plots
 
-Four PNGs are generated during training and embedded in the comment:
+Four PNGs are generated during training (`visualization/visualize.py`) and
+attached to the workflow run as the `cml-plots` artifact; the comment links to
+the run:
 
 | Plot | File | Shows |
 |---|---|---|
@@ -93,7 +105,7 @@ control.
 
 ## Model comparison against baseline
 
-Step 8 runs `scripts/compare_to_baseline.py`, which:
+Step 9 runs `scripts/compare_to_baseline.py`, which:
 
 1. Parses the validation metrics from `metrics.txt`.
 2. Reads the reference metrics from `reports/baseline_metrics.json`.
@@ -147,9 +159,10 @@ python scripts/compare_to_baseline.py --metrics path/to/metrics.txt \
     --baseline reports/baseline_metrics.json --out comparison.md
 ```
 
-**Add or change plots.** Plots are produced inside `train_model.py`. Add the new
-PNG there, then add a corresponding `echo '![...](./your_plot.png)'` block in
-step 8 of `cml.yml` so it appears in the comment.
+**Add or change plots.** Plot functions live in
+`src/food_on_the_fly/visualization/visualize.py` and are called from
+`train_model.py`. Add the new PNG there, then add its file name to the `path:`
+list of the "Upload CML plots" step in `cml.yml` so it is attached to the run.
 
 **Change triggers.** Edit the `on:` block at the top of `cml.yml`. To run on
 additional branches, extend the `branches` lists.

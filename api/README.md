@@ -16,7 +16,7 @@ The FastAPI inference service lives in the installable package at
 uvicorn food_on_the_fly.api.main:app --reload --port 8080
 
 # Against a local artifact:
-MODEL_PATH=models/model.joblib uvicorn food_on_the_fly.api.main:app --port 8080
+MODEL_PATH=models/pipeline.joblib uvicorn food_on_the_fly.api.main:app --port 8080
 ```
 
 Then open http://localhost:8080/docs for interactive Swagger docs.

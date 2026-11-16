@@ -13,8 +13,10 @@ below too, for a partial cleanup that keeps the project.
 | --- | --- | --- |
 | Cloud Run service | `food-on-the-fly-api` (min 0 instances) | none |
 | Artifact Registry | `food-on-the-fly` (one image per deploy) | storage beyond the free tier |
-| Cloud Storage | `gs://food-on-the-fly-data-amomin` (one ~6 MB CSV) | negligible |
-| Service accounts, WIF pool | `fof-api-runtime`, `github-deployer`, pool `github` | none |
+| Cloud Storage | `gs://food-on-the-fly-data-amomin` (~6 MB CSV, trained models under `models/`) | negligible |
+| Cloud Function | `fof-predict` (scales to zero) | none |
+| Vertex AI | finished custom jobs (billed only while running) | none |
+| Service accounts, WIF pool | `fof-api-runtime`, `github-deployer`, `fof-trainer`, `fof-builder`, pool `github` | none |
 | Logs and metrics | Cloud Logging / Monitoring defaults | within free allotment |
 
 Images are the only thing that grows: every merge to `main` pushes a new one.
@@ -54,6 +56,7 @@ PROJECT_NUMBER=$(gcloud projects describe food-on-the-fly --format='value(projec
 
 # Serving
 gcloud run services delete food-on-the-fly-api --region us-central1 --quiet
+gcloud functions delete fof-predict --gen2 --region us-central1 --quiet
 
 # Images
 gcloud artifacts repositories delete food-on-the-fly --location us-central1 --quiet
@@ -65,19 +68,25 @@ gcloud storage rm --recursive gs://food-on-the-fly-data-amomin
 gcloud iam workload-identity-pools delete github --location global --quiet
 gcloud iam service-accounts delete github-deployer@food-on-the-fly.iam.gserviceaccount.com --quiet
 gcloud iam service-accounts delete fof-api-runtime@food-on-the-fly.iam.gserviceaccount.com --quiet
+gcloud iam service-accounts delete fof-trainer@food-on-the-fly.iam.gserviceaccount.com --quiet
+gcloud iam service-accounts delete fof-builder@food-on-the-fly.iam.gserviceaccount.com --quiet
 
 # APIs (optional once the resources are gone)
 gcloud services disable run.googleapis.com artifactregistry.googleapis.com \
-  cloudbuild.googleapis.com --force
+  cloudbuild.googleapis.com cloudfunctions.googleapis.com aiplatform.googleapis.com \
+  eventarc.googleapis.com --force
 ```
 
 Then remove the five `GCP_*` secrets from the GitHub repository, or the deploy
-and CML workflows will fail on their next run.
+and CML workflows will fail on their next run. On Hugging Face, delete the
+Space (Settings → Delete this Space) and revoke the `github-deploy` token, then
+remove `HF_TOKEN` and `HF_SPACE_ID` from GitHub.
 
 ### Verify nothing is left
 
 ```bash
 gcloud run services list --region us-central1
+gcloud functions list --region us-central1
 gcloud artifacts repositories list --location us-central1
 gcloud storage ls
 gcloud iam service-accounts list

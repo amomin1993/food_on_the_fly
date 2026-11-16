@@ -5,6 +5,38 @@ All notable changes to Food on the Fly. Format based on
 [Semantic Versioning](https://semver.org/). Tags matching `v*.*.*` trigger
 `.github/workflows/deploy.yml`.
 
+## [1.2.0] - 2026-11-15
+
+### Added
+- Vertex AI custom training job: `train:<sha>` image, data read from Cloud
+  Storage, artifacts uploaded to `gs://food-on-the-fly-data-amomin/models/<run id>/`
+  (`scripts/gcp_extras.sh`, `scripts/upload_artifacts.py`).
+- Cloud Function `fof-predict` (gen2) serving the same model and request
+  schemas as the Cloud Run API (`deploy/cloud_function/`).
+- Hugging Face Space at `amomin1993/food-on-the-fly`: static page
+  (`app/index.html`) that calls the Cloud Run API, deployed by `deploy-hf.yml`.
+- CORS on the API for `*.hf.space` origins (`CORS_ORIGIN_REGEX` to override),
+  with tests.
+- `docs/examples/predict_request.json`, Phase 3 screenshots in `docs/images/phase3/`.
+- `tests/test_end_to_end.py`: temporal split, training, evaluation (all three
+  selection modes), batch prediction and feature importance on synthetic data.
+  Coverage 34% to 86%, 75 tests.
+- CI, deploy and Hugging Face status badges in `README.md`; Phase 3 summary
+  section in `README.md` and a per-deliverable summary in `PHASE3.md`.
+
+### Changed
+- `predict_model.py` scores a CSV with `models/pipeline.joblib` (it was a stub).
+- `visualization/visualize.py` holds the four evaluation plots used by
+  training (it held unused classification plots).
+- CML report is posted without the CML image host, which was returning
+  errors; plots are attached to the workflow run as the `cml-plots` artifact.
+- Gradio app (`app/app.py`) calls the Cloud Run API when `API_URL` is set and
+  falls back to the bundled model.
+
+### Fixed
+- `gcp_extras.sh` retries the IAM binding for a newly created service account
+  until IAM can see it.
+
 ## [1.1.0] - 2026-11-15
 
 ### Added
