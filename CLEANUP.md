@@ -14,9 +14,9 @@ below too, for a partial cleanup that keeps the project.
 | Cloud Run service | `food-on-the-fly-api` (min 0 instances) | none |
 | Artifact Registry | `food-on-the-fly` (one image per deploy) | storage beyond the free tier |
 | Cloud Storage | `gs://food-on-the-fly-data-amomin` (~6 MB CSV, trained models under `models/`) | negligible |
-| Cloud Function | `fof-predict` (scales to zero) | none |
+| Cloud Function | `fof-predict`, deleted 2026-11-15 | none |
 | Vertex AI | finished custom jobs (billed only while running) | none |
-| Service accounts, WIF pool | `fof-api-runtime`, `github-deployer`, `fof-trainer`, `fof-builder`, pool `github` | none |
+| Service accounts, WIF pool | `fof-api-runtime`, `github-deployer`, pool `github` (`fof-trainer` and `fof-builder` deleted 2026-11-15) | none |
 | Logs and metrics | Cloud Logging / Monitoring defaults | within free allotment |
 
 Images are the only thing that grows: every merge to `main` pushes a new one.
