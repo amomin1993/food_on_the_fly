@@ -1,4 +1,4 @@
-<img width="2000" height="2000" alt="image" src="https://github.com/user-attachments/assets/259c9180-278f-41ad-b213-d02d4135c092" />
+<img width="220" alt="Food on the Fly logo" src="https://github.com/user-attachments/assets/259c9180-278f-41ad-b213-d02d4135c092" />
 
 # Food on the Fly
 
@@ -7,6 +7,8 @@
 [![Deploy to Hugging Face](https://github.com/amomin1993/food_on_the_fly/actions/workflows/deploy-hf.yml/badge.svg)](https://github.com/amomin1993/food_on_the_fly/actions/workflows/deploy-hf.yml)
 
 A food delivery prediction AI for estimated delivery times
+
+**Status:** complete, final submission (November 2026). Phases 1 and 2 and most of Phase 3 were built by the team in spring 2026. The Phase 3 deployment, evidence and final report were completed by Abdul Momin in this fork; see [Team Contributions](#team-contributions) and [FINAL_REPORT.md](FINAL_REPORT.md).
 
 ## Demo and Live Deployment
 
