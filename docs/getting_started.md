@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.13 or higher
+- Python 3.11, 3.12 or 3.13
 - pip or uv package manager
 - Git (for version control)
 - Docker (optional, for containerized execution)
@@ -70,7 +70,7 @@ make data
 Or directly:
 
 ```bash
-python -m food_on_the_fly.data.make_dataset
+python -m food_on_the_fly.data.temporal_split
 ```
 
 ### Model Training
@@ -84,7 +84,7 @@ make train
 With custom parameters:
 
 ```bash
-python -m food_on_the_fly.train_model --epochs 100 --batch-size 64
+python -m food_on_the_fly.train_model model=xgboost_optimized
 ```
 
 ### Model Prediction
@@ -164,7 +164,7 @@ docker-compose up
 ### Run Single Container
 
 ```bash
-make docker_run
+make docker_run_train
 ```
 
 ## Project Structure
@@ -173,7 +173,7 @@ make docker_run
 food_on_the_fly/                  # Repository root
 ├── src/
 │   └── food_on_the_fly/          # Importable package (src/ layout)
-│       ├── config.py                  # Paths & typed config
+│       ├── config.py                  # Paths & Hydra config loader
 │       ├── logging_config.py
 │       ├── data/                      # Loaders + raw→processed pipeline
 │       ├── features/                  # Feature engineering
@@ -187,7 +187,7 @@ food_on_the_fly/                  # Repository root
 ├── data/                              # raw/ and processed/
 ├── models/                            # Trained model artifacts
 ├── docs/                              # MkDocs documentation
-├── configs/                           # Hydra configuration (optional)
+├── configs/                           # Hydra configuration
 ├── pyproject.toml
 ├── requirements.txt
 └── Makefile
@@ -196,23 +196,23 @@ food_on_the_fly/                  # Repository root
 ## Configuration
 
 ### Using Hydra Configuration
-Configuration is managed via Hydra. Edit `configs/config.yaml`:
+Configuration is managed via Hydra. `configs/config.yaml` holds the defaults and picks a model config from `configs/model/`, for example `xgboost_baseline.yaml`:
 
 ```yaml
-model:
-  name: my_model
-  type: sklearn
-training:
-  epochs: 100
-  batch_size: 32
+name: baseline
+type: xgboost
+parameters:
+  n_estimators: 50
+  max_depth: 3
+  learning_rate: 0.1
 ```
 
 Override at runtime:
 
 ```bash
 python -m food_on_the_fly.train_model \
-  model.name=custom_model \
-  training.epochs=200
+  model=xgboost_optimized \
+  model.parameters.n_estimators=300
 ```
 
 ## Troubleshooting
@@ -223,18 +223,6 @@ If you get `ModuleNotFoundError`, ensure:
 1. Virtual environment is activated
 2. Dependencies are installed: `pip install -r requirements.txt`
 3. Package is installed in editable mode: `pip install -e .`
-
-### CUDA/GPU Issues
-
-If using PyTorch with GPU:
-
-```bash
-# Check GPU availability
-python -c "import torch; print(torch.cuda.is_available())"
-
-# Install CPU-only version if needed
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-```
 
 ### Pre-commit Hook Failures
 
