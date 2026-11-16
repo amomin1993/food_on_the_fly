@@ -15,18 +15,30 @@ All notable changes to Food on the Fly. Format based on
 - `docs/architecture.md` (data, training, serving and CI/CD diagrams).
 - Testing and troubleshooting sections in `README.md`, CI/CD and PR testing
   requirements in `CONTRIBUTING.md`.
+- Cloud Run deployment in the project's own GCP: `scripts/gcp_setup.sh`
+  (Artifact Registry, dataset bucket, service accounts, Workload Identity
+  Federation, first deploy, smoke test, load test), `DEPLOYMENT.md`, `CLEANUP.md`.
+- Cloud Monitoring dashboard and 5xx alert policy (`scripts/gcp_monitoring.sh`,
+  `deploy/monitoring/`).
+- Sample training, inference and load test logs in `docs/logs/`.
 
 ### Fixed
 - CI format check failing on Markdown code blocks after a ruff upgrade.
 - API image now serves the committed `models/pipeline.joblib` (`MODEL_PATH`), so
   `/predict` works on Cloud Run instead of returning 503.
 - `setup_logging()` is idempotent, so log lines are no longer duplicated.
+- Model logging on MLflow 3.x: `serialization_format="cloudpickle"` plus explicit
+  requirements (skops rejected the custom transformers; inference conflicted
+  with `uv.lock`).
 - Restored explicit `pip_requirements` in `mlflow.sklearn.log_model`, which had been
   reverted in #59.
 
 ### Changed
 - Phase 1-3 checklists rewritten so every ticked item points at a real file,
   commit or run.
+- Raw data and deploys moved from the team's GCP project to `food-on-the-fly`;
+  Cloud Run capped at 0-2 instances.
+- Profiling re-measured; the May "68% faster" figure corrected.
 
 ## [1.0.0] - 2026-06-08
 

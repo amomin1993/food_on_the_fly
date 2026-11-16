@@ -1,0 +1,64 @@
+2026-11-15 16:11:16 | INFO     | food_on_the_fly.api.model_loader | Loading model from local path models/pipeline.joblib
+2026-11-15 16:11:17 | INFO     | food_on_the_fly.api.main | Model ready: pipeline.joblib
+2026-11-15 16:11:17 | INFO     | httpx | HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-11-15 16:11:17 | INFO     | httpx | HTTP Request: POST http://testserver/predict "HTTP/1.1 200 OK"
+2026-11-15 16:11:17 | INFO     | httpx | HTTP Request: POST http://testserver/predict/batch "HTTP/1.1 200 OK"
+2026-11-15 16:11:17 | ERROR    | food_on_the_fly.api.main | Prediction failed
+Traceback (most recent call last):
+  File "src/food_on_the_fly/api/main.py", line 83, in predict
+    preds = model_loader.predict_frame([request.model_dump()])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "src/food_on_the_fly/api/model_loader.py", line 85, in predict_frame
+    preds = model.predict(frame)
+            ^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/sklearn/pipeline.py", line 794, in predict
+    Xt = transform.transform(Xt)
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/sklearn/utils/_set_output.py", line 327, in wrapped
+    data_to_wrap = f(self, X, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/sklearn/compose/_column_transformer.py", line 1074, in transform
+    Xs = self._call_func_on_transformers(
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/sklearn/compose/_column_transformer.py", line 887, in _call_func_on_transformers
+    return Parallel(n_jobs=self.n_jobs)(jobs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/sklearn/utils/parallel.py", line 91, in __call__
+    return super().__call__(iterable_with_config_and_warning_filters)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/joblib/parallel.py", line 2012, in __call__
+    return output if self.return_generator else list(output)
+                                                ^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/joblib/parallel.py", line 1940, in _get_sequential_output
+    res = func(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/sklearn/utils/parallel.py", line 184, in __call__
+    return self.function(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/sklearn/pipeline.py", line 1546, in _transform_one
+    res = transformer.transform(X, **params["transform"])
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/sklearn/utils/_set_output.py", line 327, in wrapped
+    data_to_wrap = f(self, X, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "src/food_on_the_fly/features/build_features.py", line 66, in transform
+    weekdays = pd.to_datetime(
+               ^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/pandas/core/tools/datetimes.py", line 1239, in to_datetime
+    values = convert_listlike(arg._values, format)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/pandas/core/tools/datetimes.py", line 486, in _convert_listlike_datetimes
+    result, tz_parsed = objects_to_datetime64(
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File ".venv/lib/python3.11/site-packages/pandas/core/arrays/datetimes.py", line 2820, in objects_to_datetime64
+    result, tz_parsed = tslib.array_to_datetime(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/tslib.pyx", line 364, in pandas._libs.tslib.array_to_datetime
+  File "pandas/_libs/tslib.pyx", line 600, in pandas._libs.tslib.array_to_datetime
+  File "pandas/_libs/tslib.pyx", line 555, in pandas._libs.tslib.array_to_datetime
+  File "pandas/_libs/tslibs/conversion.pyx", line 839, in pandas._libs.tslibs.conversion.convert_str_to_tsobject
+  File "pandas/_libs/tslibs/parsing.pyx", line 329, in pandas._libs.tslibs.parsing.parse_datetime_string
+  File "pandas/_libs/tslibs/parsing.pyx", line 705, in pandas._libs.tslibs.parsing.dateutil_parse
+pandas._libs.tslibs.parsing.DateParseError: Unknown datetime string format, unable to parse: notadate
+2026-11-15 16:11:17 | INFO     | httpx | HTTP Request: POST http://testserver/predict "HTTP/1.1 400 Bad Request"
+2026-11-15 16:11:17 | INFO     | httpx | HTTP Request: POST http://testserver/predict "HTTP/1.1 422 Unprocessable Entity"

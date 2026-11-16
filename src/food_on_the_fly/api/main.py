@@ -9,10 +9,12 @@ resolution is handled in ``model_loader`` (MLflow URI or local path).
 
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from food_on_the_fly.api import model_loader
 from food_on_the_fly.api.schemas import (
@@ -43,6 +45,19 @@ app = FastAPI(
     description="Estimate food-delivery time (minutes) from order details.",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+# The Hugging Face Space is a static page that calls this API from the
+# browser, so its origin (*.hf.space) has to be allowed. Override with
+# CORS_ORIGIN_REGEX if the front end moves.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=os.getenv(
+        "CORS_ORIGIN_REGEX",
+        r"https://([a-z0-9-]+\.)*hf\.space|http://(localhost|127\.0\.0\.1)(:\d+)?",
+    ),
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 

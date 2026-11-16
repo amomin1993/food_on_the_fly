@@ -60,6 +60,17 @@ flowchart TD
 
 Detailed data, training, serving and CI/CD diagrams are in [docs/architecture.md](docs/architecture.md).
 
+## Live Deployment
+
+- **Prediction API (Cloud Run):** https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app (interactive docs at [`/docs`](https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/docs))
+- **Demo video:** DEMO_VIDEO_LINK
+- **How it is deployed:** [DEPLOYMENT.md](DEPLOYMENT.md) · **Teardown and cost:** [CLEANUP.md](CLEANUP.md) · **Changes:** [CHANGELOG.md](CHANGELOG.md)
+
+```bash
+curl -s https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/health
+# {"status":"ok","model_loaded":true,"model_version":"pipeline.joblib"}
+```
+
 ## Phase Deliverables
 
 ### Phase 1: Project Design & Model Development
@@ -354,6 +365,7 @@ every PR through `.github/workflows/pr-checks.yml`.
 | `command not found: python` on macOS | macOS ships `python3` only | Use `python3`, or activate the project venv so `python` resolves |
 | `error: externally-managed-environment` on `pip install` | Homebrew/system Python blocks global installs (PEP 668) | Create a venv: `python3 -m venv .venv && source .venv/bin/activate` |
 | Training is slow at the very end of a run | MLflow infers pip requirements by scanning installed packages | Already fixed: `log_model` passes explicit `pip_requirements` (see `docs/profiling/OPTIMIZATIONS.md`) |
+| `MlflowException: ... untrusted types` or `ResolutionImpossible` when logging the model | MLflow 3.x defaults to the skops serializer and infers requirements from `uv.lock` | Fixed: `log_model` uses `serialization_format="cloudpickle"` with explicit `pip_requirements` |
 | `FileNotFoundError` for `data/processed/train.csv` | Splits not generated yet | Run `make data`, or pass `data.source_uri=<path to zomato_dataset.csv>` |
 | `gcsfs` / `DefaultCredentialsError` when loading data | `data.source_uri` points at GCS without credentials | Run `gcloud auth application-default login`, or override `data.source_uri` with a local path |
 | Duplicate log lines in the console | `setup_logging()` called more than once (Hydra + API startup) | Fixed: `setup_logging()` now clears existing handlers before adding new ones |

@@ -1,0 +1,32 @@
+{
+  "displayName": "Food on the Fly API: 5xx responses",
+  "combiner": "OR",
+  "conditions": [
+    {
+      "displayName": "Any 5xx response in a 5 minute window",
+      "conditionThreshold": {
+        "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" resource.label.\"service_name\"=\"food-on-the-fly-api\" metric.label.\"response_code_class\"=\"5xx\"",
+        "aggregations": [
+          {
+            "alignmentPeriod": "300s",
+            "perSeriesAligner": "ALIGN_SUM",
+            "crossSeriesReducer": "REDUCE_SUM"
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "thresholdValue": 0,
+        "duration": "0s",
+        "trigger": {
+          "count": 1
+        }
+      }
+    }
+  ],
+  "documentation": {
+    "content": "The prediction API returned server errors. Logs Explorer: resource.type=\"cloud_run_revision\" resource.labels.service_name=\"food-on-the-fly-api\" severity>=ERROR",
+    "mimeType": "text/markdown"
+  },
+  "alertStrategy": {
+    "autoClose": "1800s"
+  }
+}
