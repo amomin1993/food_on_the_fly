@@ -15,7 +15,7 @@ Phase 2 focuses on scaling and operationalizing Food on the Fly by implementing 
 - [x] **Environment Variables**: Define and document required environment variables
   - Evidence: `dockerfiles/Dockerfile` lines 21-22 (`PATH`, `PYTHONUNBUFFERED`); `dockerfiles/Dockerfile.api` adds `PORT` and `MODEL_PATH`; `docker-compose.yaml` sets `GOOGLE_APPLICATION_CREDENTIALS` and `GOOGLE_CLOUD_PROJECT`
 - [x] **Build Instructions**: Document how to build Docker image with examples
-  - Evidence: `README.md` section "Docker Usage" (line 131)
+  - Evidence: `README.md` section "Docker Usage" (line 151)
 - [x] **Run Instructions**: Document how to run container with proper volume/network config
   - Evidence: `README.md` section "Docker Usage", volume mounts for `data/`, `mlruns/`, `logs/`
 - [x] **Container Testing**: Test container locally to ensure consistency with host environment
@@ -23,7 +23,10 @@ Phase 2 focuses on scaling and operationalizing Food on the Fly by implementing 
 - [x] **Docker Compose (Optional)**: Create docker-compose.yml for multi-service setups
   - Evidence: `docker-compose.yaml` (mounts data, models, mlruns and gcloud credentials; exposes 8000 and 5001 on a bridge network)
 - [x] **Environment Consistency**: Verify that containerized training produces identical results to local training
-  - Evidence: the training image (`dockerfiles/Dockerfile`, pushed as `train:20a3dd6`) was run as a Vertex AI custom job on 2026-11-15 with `model=xgboost_optimized`, and the same config was trained locally on the same data. Both runs used scikit-learn 1.9.1, XGBoost 3.2.0, pandas 3.1.1 and NumPy 2.4.6, and produced identical metrics: train RMSE 3.24 / MAE 2.59 / R² 0.8787, validation RMSE 3.95 / MAE 3.12 / R² 0.8234 (container output in `gs://food-on-the-fly-data-amomin/models/20261115-225611/metrics.txt`, screenshot `docs/images/phase3/vertex_job.png`). Seeds are pinned with `random_state: 42`
+  - Evidence: the training image (`dockerfiles/Dockerfile`, pushed as `train:20a3dd6`) was run as a Vertex AI custom job on 2026-11-15 with `model=xgboost_optimized`, and the same configuration was trained locally on the same data. Both runs used scikit-learn 1.9.1, XGBoost 3.2.0, pandas 3.1.1 and NumPy 2.4.6, and produced identical metrics:
+  train RMSE 3.24 / MAE 2.59 / R² 0.8787
+  validation RMSE 3.95 / MAE 3.12 / R² 0.8234
+  (container output in `gs://food-on-the-fly-data-amomin/models/20261115-225611/metrics.txt`, screenshot `docs/images/phase3/vertex_job.png`). Seeds are pinned with `random_state: 42`
 
 ---
 
@@ -38,7 +41,7 @@ Phase 2 focuses on scaling and operationalizing Food on the Fly by implementing 
 - [x] **Debug Scenario 2**: All predictions are identical
   - Evidence: `docs/debugging/README.md` "Debugging Scenario 2"
 - [x] **Logging for Debugging**: Implement detailed logging at critical points in code
-  - Evidence: `src/food_on_the_fly/train_model.py` lines 61 (resolved config), 83-114 (data loading and sample counts), 183 (enabled transformers), 194-200 (training start and duration), 229-239 (train/val metrics)
+  - Evidence: `src/food_on_the_fly/train_model.py` lines 67 (resolved config), 89-120 (data loading and sample counts), 189 (enabled transformers), 200-206 (training start and duration), 235-245 (train/val metrics)
 - [x] **Model Assertion Checks**: Add assertions to catch data/model anomalies early
   - Evidence: `src/food_on_the_fly/data/make_dataset.py` lines 82-90 (split sizes must sum to the dataset, and the drift window must start after the modeling window so no future data leaks into training)
 - [x] **Training Validation**: Implement sanity checks (NaN detection, shape validation, etc.)
@@ -68,13 +71,13 @@ Phase 2 focuses on scaling and operationalizing Food on the Fly by implementing 
 ## 4. Experiment Management & Tracking
 
 - [x] **MLflow Setup**: Initialize MLflow tracking server and client configuration
-  - Evidence: `configs/config.yaml` lines 6-9, `src/food_on_the_fly/train_model.py` lines 67-68
+  - Evidence: `configs/config.yaml` lines 6-9, `src/food_on_the_fly/train_model.py` lines 73-74
 - [x] **Metric Logging**: Log training/validation metrics for each experiment
-  - Evidence: `src/food_on_the_fly/train_model.py` lines 199 (train duration) and 219-226 (train/val MSE, RMSE, MAE, R²)
+  - Evidence: `src/food_on_the_fly/train_model.py` lines 205 (train duration) and 225-232 (train/val MSE, RMSE, MAE, R²)
 - [x] **Parameter Logging**: Hydra params are logged
-  - Evidence: `src/food_on_the_fly/train_model.py` lines 73-78 (full resolved config logged with `mlflow.log_params`)
+  - Evidence: `src/food_on_the_fly/train_model.py` lines 79-84 (full resolved config logged with `mlflow.log_params`)
 - [x] **System Metrics**: CPU and memory captured per run
-  - Evidence: `mlflow.enable_system_metrics_logging()` at `train_model.py` line 72, `src/food_on_the_fly/utils/monitoring.py`
+  - Evidence: `mlflow.enable_system_metrics_logging()` at `train_model.py` line 78, `src/food_on_the_fly/utils/monitoring.py`
 - [x] **Model Artifact Logging**: Pipeline saved to MLflow
   - Evidence: `src/food_on_the_fly/train_model.py` (`mlflow.sklearn.log_model` after the CML outputs), plus `models/pipeline.joblib` for serving
 - [x] **Experiment Comparison**: 3+ models trained and compared
@@ -116,7 +119,7 @@ make evaluate_best_r2  # Evaluate best model by R² score
 - [x] **Log Levels**: DEBUG, INFO, WARNING, ERROR used appropriately
   - Evidence: `train_model.py` (INFO progress, WARNING on config conversion), `evaluate_model.py` (ERROR when a run_id is missing), `utils/monitoring.py` (WARNING when psutil is absent), `api/main.py` (exception logging on failed predictions)
 - [x] **Log Messages**: Informative messages at key points
-  - Evidence: `train_model.py` lines 61-361 (see section 2)
+  - Evidence: `train_model.py` lines 67-293 (see section 2)
 - [x] **Training Log Example**: Sample training run committed
   - Evidence: `docs/logs/sample_training.log` (resolved config, data loading, enabled transformers, training duration, train/val metrics, MLflow logging)
 - [x] **Inference Log Example**: Prediction logs included
@@ -124,7 +127,7 @@ make evaluate_best_r2  # Evaluate best model by R² score
 - [x] **Error Logging**: Comprehensive error logging with context
   - Evidence: `api/main.py` `logger.exception(...)` on prediction failure, `api/model_loader.py` warning when the model cannot load at startup
 - [x] **Performance Logging**: Training duration logged
-  - Evidence: `train_model.py` lines 195-200 (`time.perf_counter`, logged to MLflow as `train_duration_seconds`)
+  - Evidence: `train_model.py` lines 201-206 (`time.perf_counter`, logged to MLflow as `train_duration_seconds`)
 - [x] **Log Rotation**: RotatingFileHandler configured (10MB, 5 backups)
   - Evidence: `src/food_on_the_fly/logging_config.py`
 
@@ -133,7 +136,7 @@ make evaluate_best_r2  # Evaluate best model by R² score
 ## 6. Configuration Management
 
 - [x] **Hydra Setup**: Hydra configured with OmegaConf
-  - Evidence: `train_model.py` line 53 (`@hydra.main`), `configs/` directory
+  - Evidence: `train_model.py` line 59 (`@hydra.main`), `configs/` directory
 - [x] **Config Files**: YAML configs for all components
   - Evidence: `configs/config.yaml`, `configs/model/*.yaml`, `configs/sweep.yaml`
 - [x] **Config Structure**: Hierarchical configs (base + model overrides)
@@ -155,17 +158,17 @@ make evaluate_best_r2  # Evaluate best model by R² score
 
 - [x] **README Update**: Includes all Phase 2 sections:
   - [x] Containerization section with Docker usage
-    - Evidence: `README.md` "Docker Usage" (line 131)
+    - Evidence: `README.md` "Docker Usage" (line 151)
   - [x] Debugging and profiling guide
-    - Evidence: `README.md` "Profiling" (line 190) and "Debugging" (line 273), links to `docs/debugging/` and `docs/profiling/`
+    - Evidence: `README.md` "Profiling" (line 210) and "Debugging" (line 293), links to `docs/debugging/` and `docs/profiling/`
   - [x] Experiment tracking setup instructions
-    - Evidence: `README.md` "Monitoring & Experiment Tracking" (line 161)
+    - Evidence: `README.md` "Monitoring & Experiment Tracking" (line 181)
   - [x] Configuration management guide
-    - Evidence: `README.md` "Model Configuration" (line 75)
+    - Evidence: `README.md` "Model Configuration" (line 95)
   - [x] Logging usage examples
-    - Evidence: `README.md` "Logging" (line 295)
+    - Evidence: `README.md` "Logging" (line 315)
 - [x] **Architecture Documentation**: Mermaid diagram in README
-  - Evidence: `README.md` "Architecture Diagram" (line 26)
+  - Evidence: `README.md` "Architecture Diagram" (line 44)
 - [x] **Setup Guide**: Updated with Phase 2 tools
   - Evidence: `README.md` "Setup Instructions"
 - [x] **Examples**: Running with different configurations

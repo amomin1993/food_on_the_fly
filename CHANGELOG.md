@@ -5,6 +5,7 @@ All notable changes to Food on the Fly. Format based on
 [Semantic Versioning](https://semver.org/). Tags matching `v*.*.*` trigger
 `.github/workflows/deploy.yml`.
 
+## This is Abdul Momin submission for the remaining project after forking the repo (from back in june)
 ## [1.2.0] - 2026-11-15
 
 ### Added
@@ -37,6 +38,7 @@ All notable changes to Food on the Fly. Format based on
 - `gcp_extras.sh` retries the IAM binding for a newly created service account
   until IAM can see it.
 
+## This is Abdul Momin submission after forking the repo (from back in june)
 ## [1.1.0] - 2026-11-15
 
 ### Added
@@ -72,6 +74,8 @@ All notable changes to Food on the Fly. Format based on
   Cloud Run capped at 0-2 instances.
 - Profiling re-measured; the May "68% faster" figure corrected.
 
+
+## This is the old submission...
 ## [1.0.0] - 2026-06-08
 
 ### Added

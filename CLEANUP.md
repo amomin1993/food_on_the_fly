@@ -27,8 +27,12 @@ Keep the image the service is running and delete the rest:
 
 ```bash
 REPO=us-central1-docker.pkg.dev/food-on-the-fly/food-on-the-fly/api
-LIVE=$(gcloud run services describe food-on-the-fly-api --region us-central1 \
-  --format='value(spec.template.spec.containers[0].image)')
+# The service is deployed by tag, so look up the digest the live revision runs.
+REV=$(gcloud run services describe food-on-the-fly-api --region us-central1 \
+  --format='value(status.latestReadyRevisionName)')
+LIVE=$(gcloud run revisions describe "$REV" --region us-central1 \
+  --format='value(status.imageDigest)')
+echo "Keeping $LIVE"
 gcloud artifacts docker images list "$REPO" --include-tags --format='value(version)' \
   | while read -r digest; do
       [[ "$LIVE" == *"$digest"* ]] && continue
@@ -36,6 +40,39 @@ gcloud artifacts docker images list "$REPO" --include-tags --format='value(versi
     done
 gcloud artifacts docker images list "$REPO" --include-tags
 ```
+
+## Cleanup done for the submission
+
+The Hugging Face Space calls the Cloud Run API, so the service and the image it
+runs stay up until grading is finished. Everything else that the demo does not
+need was removed after the demo was recorded:
+
+```bash
+gcloud config set project food-on-the-fly
+
+# Cloud Function (the Vertex AI job and its outputs in the bucket stay as evidence)
+gcloud functions delete fof-predict --gen2 --region us-central1 --quiet
+
+# Training image
+gcloud artifacts docker images delete \
+  us-central1-docker.pkg.dev/food-on-the-fly/food-on-the-fly/train \
+  --delete-tags --quiet
+
+# Old API images: run the "Routine cleanup" block above
+
+# Service accounts only the training job and the function used
+gcloud iam service-accounts delete fof-trainer@food-on-the-fly.iam.gserviceaccount.com --quiet
+gcloud iam service-accounts delete fof-builder@food-on-the-fly.iam.gserviceaccount.com --quiet
+
+# Check: only food-on-the-fly-api should be listed, with one api image
+gcloud run services list --region us-central1
+gcloud artifacts docker images list us-central1-docker.pkg.dev/food-on-the-fly/food-on-the-fly --include-tags
+```
+
+Gen2 Cloud Functions are listed as Cloud Run services, so after this the Cloud
+Run page shows only `food-on-the-fly-api`. Screenshot:
+`docs/images/phase3/gcp_cleanup.png`. After grading, run the full teardown
+below.
 
 ## Full teardown
 

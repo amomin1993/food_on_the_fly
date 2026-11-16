@@ -42,7 +42,7 @@ Phase 1 establishes the foundation for your MLOps project. This phase covers pro
 ## 4. Data Handling
 
 - [x] **Data Cleaning Scripts**: `make_dataset.py` — loads Zomato CSV, cleans target column, filters bad rows, parses dates, produces temporal + random splits
-- [x] **Normalization**: `StandardScaler` on numeric features and `OneHotEncoder` on categoricals inside the sklearn `ColumnTransformer` (`train_model.py` lines 148-157), so the same transforms apply at training and inference
+- [x] **Normalization**: `StandardScaler` on numeric features and `OneHotEncoder` on categoricals inside the sklearn `ColumnTransformer` (`train_model.py` lines 154-164), so the same transforms apply at training and inference
 - [ ] **Data Augmentation**: Not applicable for a tabular regression task (no synthetic rows; the drift window is held out instead)
 - [x] **Data Documentation**: 19 features documented — lat/lon pairs, timestamps, weather, traffic density, vehicle type, multiple deliveries, festival flag, city tier
 - [x] **Data Splits**: 70 / 15 / 15 train/val/test on first 40 days; last 14 days reserved as drift set

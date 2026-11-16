@@ -8,6 +8,7 @@ and no network or real dataset is needed.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
 
 import joblib
@@ -16,9 +17,12 @@ import numpy as np
 import pandas as pd
 import pytest
 from hydra import compose, initialize_config_dir
+from omegaconf import DictConfig
 
 from food_on_the_fly import evaluate_model, predict_model, train_model
 from food_on_the_fly.data import loaders, temporal_split
+
+Workspace = tuple[DictConfig, Path]
 
 CONFIG_DIR = str(Path(__file__).resolve().parents[1] / "configs")
 N_ROWS = 900
@@ -68,7 +72,7 @@ def _synthetic_orders(seed: int = 0) -> pd.DataFrame:
 
 
 @pytest.fixture
-def workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Workspace]:
     """Point every entry point at a throwaway directory and return a Hydra config."""
     raw_csv = tmp_path / "orders.csv"
     _synthetic_orders().to_csv(raw_csv, index=False)
@@ -86,18 +90,19 @@ def workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         f"paths.models_dir={tmp_path / 'models'}",
         "model.parameters.n_estimators=30",
     ]
+    previous_uri = mlflow.get_tracking_uri()
     with initialize_config_dir(config_dir=CONFIG_DIR, version_base=None):
         cfg = compose(config_name="config", overrides=overrides)
     yield cfg, tmp_path
-    mlflow.set_tracking_uri(None)
+    mlflow.set_tracking_uri(previous_uri)
 
 
-def _runs(cfg) -> pd.DataFrame:
+def _runs(cfg: DictConfig) -> pd.DataFrame:
     mlflow.set_tracking_uri(cfg.mlflow.tracking_uri)
     return mlflow.search_runs(experiment_names=[cfg.mlflow.experiment_name])
 
 
-def test_split_train_evaluate_predict(workspace) -> None:
+def test_split_train_evaluate_predict(workspace: Workspace) -> None:
     cfg, root = workspace
     processed = root / "processed"
 
@@ -149,7 +154,7 @@ def test_split_train_evaluate_predict(workspace) -> None:
 
 
 @pytest.mark.parametrize("mode", ["best", "specific"])
-def test_evaluate_selection_modes(workspace, mode: str) -> None:
+def test_evaluate_selection_modes(workspace: Workspace, mode: str) -> None:
     cfg, _ = workspace
     temporal_split.main(cfg)
     train_model.main(cfg)
@@ -164,13 +169,13 @@ def test_evaluate_selection_modes(workspace, mode: str) -> None:
     assert eval_runs["params.parent_run_id"].tolist() == [run_id]
 
 
-def test_evaluate_without_experiment_logs_and_returns(workspace) -> None:
+def test_evaluate_without_experiment_logs_and_returns(workspace: Workspace) -> None:
     cfg, _ = workspace
     cfg.mlflow.experiment_name = "does_not_exist"
     evaluate_model.main(cfg)  # must not raise
 
 
-def test_predict_cli(workspace) -> None:
+def test_predict_cli(workspace: Workspace) -> None:
     cfg, root = workspace
     temporal_split.main(cfg)
     train_model.main(cfg)
@@ -188,7 +193,7 @@ def test_predict_cli(workspace) -> None:
     assert predict_model.PREDICTION_COL in pd.read_csv(out).columns
 
 
-def test_feature_importance_report(workspace) -> None:
+def test_feature_importance_report(workspace: Workspace) -> None:
     pytest.importorskip("seaborn")
     from food_on_the_fly.analysis import feature_importance
 
