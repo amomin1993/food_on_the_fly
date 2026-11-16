@@ -2,14 +2,38 @@
 
 from __future__ import annotations
 
+import os
+import time
 from pathlib import Path
 
 import gradio as gr
+import httpx
 import joblib
 import pandas as pd
 
 MODEL_PATH = Path(__file__).parent / "pipeline.joblib"
 _pipeline = joblib.load(MODEL_PATH)
+
+# When API_URL is set (a Space variable), predictions come from the deployed
+# Cloud Run service; the bundled pipeline is the fallback if the API is down.
+API_URL = os.getenv("API_URL", "").rstrip("/")
+
+
+def _score(record: dict) -> tuple[float, str]:
+    """Return (minutes, where the prediction came from)."""
+    if API_URL:
+        try:
+            start = time.perf_counter()
+            resp = httpx.post(f"{API_URL}/predict", json=record, timeout=15.0)
+            resp.raise_for_status()
+            ms = (time.perf_counter() - start) * 1000
+            return float(resp.json()["predicted_time_min"]), (
+                f"Cloud Run API · {ms:.0f} ms round trip"
+            )
+        except (httpx.HTTPError, KeyError, ValueError):
+            pass
+    pred = float(_pipeline.predict(pd.DataFrame([record]))[0])
+    return pred, "bundled model (API unavailable)" if API_URL else "bundled model"
 
 
 def predict(
@@ -30,29 +54,26 @@ def predict(
     festival: str,
     city: str,
 ) -> str:
-    row = pd.DataFrame(
-        [
-            {
-                "Delivery_person_Age": age,
-                "Delivery_person_Ratings": ratings,
-                "Restaurant_latitude": restaurant_lat,
-                "Restaurant_longitude": restaurant_lon,
-                "Delivery_location_latitude": delivery_lat,
-                "Delivery_location_longitude": delivery_lon,
-                "Order_Date": order_date,
-                "Time_Orderd": time_ordered,
-                "Weather_conditions": weather,
-                "Road_traffic_density": traffic,
-                "Vehicle_condition": vehicle_condition,
-                "Type_of_order": order_type,
-                "Type_of_vehicle": vehicle_type,
-                "multiple_deliveries": multiple_deliveries,
-                "Festival": festival,
-                "City": city,
-            }
-        ]
-    )
-    mins = max(0.0, round(float(_pipeline.predict(row)[0]), 1))
+    record = {
+        "Delivery_person_Age": age,
+        "Delivery_person_Ratings": ratings,
+        "Restaurant_latitude": restaurant_lat,
+        "Restaurant_longitude": restaurant_lon,
+        "Delivery_location_latitude": delivery_lat,
+        "Delivery_location_longitude": delivery_lon,
+        "Order_Date": order_date,
+        "Time_Orderd": time_ordered,
+        "Weather_conditions": weather,
+        "Road_traffic_density": traffic,
+        "Vehicle_condition": vehicle_condition,
+        "Type_of_order": order_type,
+        "Type_of_vehicle": vehicle_type,
+        "multiple_deliveries": multiple_deliveries,
+        "Festival": festival,
+        "City": city,
+    }
+    raw, source = _score(record)
+    mins = max(0.0, round(raw, 1))
 
     if mins < 20:
         label, color = "Fast", "#22c55e"
@@ -67,7 +88,9 @@ def predict(
         f'<div style="font-size:3rem;font-weight:700;color:{color}">{mins} min</div>'
         f'<div style="font-size:1rem;margin-top:4px">{badge}</div>'
         f'<div style="font-size:0.85rem;color:#6b7280;margin-top:12px">'
-        f"Estimated delivery time</div></div>"
+        f"Estimated delivery time</div>"
+        f'<div style="font-size:0.75rem;color:#9ca3af;margin-top:6px">'
+        f"Served by: {source}</div></div>"
     )
 
 

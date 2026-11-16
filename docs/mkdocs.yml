@@ -13,6 +13,8 @@ nav:
   - Home: index.md
   - Getting Started: getting_started.md
   - API Reference: api.md
+  - HTTP API: http_api.md
+  - Architecture: architecture.md
   - CML Workflow: cml.md
 
 markdown_extensions:

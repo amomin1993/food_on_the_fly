@@ -1,0 +1,58 @@
+Sun Nov 15 16:10:01 2026    reports/profiling/train_model_before.prof
+
+         10081805 function calls (9857482 primitive calls) in 7.004 seconds
+
+   Ordered by: cumulative time
+   List reduced from 18063 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    7.017    7.017 scripts/profile_training.py:29(_run_training)
+ 6863/110    0.005    0.000    3.974    0.036 <frozen importlib._bootstrap>:233(_call_with_frames_removed)
+  2667/31    0.006    0.000    3.973    0.128 <frozen importlib._bootstrap_external>:934(exec_module)
+  3951/31    0.111    0.000    3.965    0.128 {built-in method builtins.exec}
+ 3207/123    0.017    0.000    3.887    0.032 <frozen importlib._bootstrap>:1165(_find_and_load)
+  3112/83    0.014    0.000    3.885    0.047 <frozen importlib._bootstrap>:1120(_find_and_load_unlocked)
+  2917/23    0.011    0.000    3.874    0.168 <frozen importlib._bootstrap>:666(_load_unlocked)
+        1    0.000    0.000    3.811    3.811 hydra/main.py:80(decorated_main)
+        1    0.000    0.000    3.808    3.808 hydra/_internal/utils.py:306(_run_hydra)
+        3    0.000    0.000    3.546    1.182 hydra/_internal/utils.py:218(run_and_report)
+        1    0.000    0.000    3.545    3.545 hydra/_internal/utils.py:430(_run_app)
+        1    0.000    0.000    3.545    3.545 hydra/_internal/utils.py:458(<lambda>)
+        1    0.000    0.000    3.545    3.545 hydra/_internal/hydra.py:98(run)
+ 1100/106    0.002    0.000    3.509    0.033 {built-in method builtins.__import__}
+20506/16673    0.015    0.000    3.477    0.000 <frozen importlib._bootstrap>:1207(_handle_fromlist)
+        1    0.002    0.002    3.386    3.386 hydra/core/utils.py:99(run_job)
+        1    0.001    0.001    3.296    3.296 src/food_on_the_fly/train_model.py:53(main)
+        1    0.000    0.000    3.171    3.171 src/food_on_the_fly/train_model.py:1(<module>)
+        1    0.000    0.000    1.631    1.631 mlflow/__init__.py:1(<module>)
+        1    0.000    0.000    1.312    1.312 xgboost/__init__.py:1(<module>)
+        1    0.000    0.000    1.296    1.296 xgboost/tracker.py:1(<module>)
+        1    0.000    0.000    1.295    1.295 xgboost/core.py:1(<module>)
+        1    0.000    0.000    1.286    1.286 xgboost/_data_utils.py:1(<module>)
+        1    0.000    0.000    1.283    1.283 xgboost/compat.py:1(<module>)
+        1    0.000    0.000    1.199    1.199 sklearn/__init__.py:1(<module>)
+        1    0.000    0.000    1.196    1.196 sklearn/base.py:1(<module>)
+        1    0.000    0.000    1.193    1.193 sklearn/utils/__init__.py:1(<module>)
+        1    0.000    0.000    1.187    1.187 sklearn/utils/_chunking.py:1(<module>)
+        1    0.000    0.000    1.186    1.186 sklearn/utils/_param_validation.py:1(<module>)
+        1    0.000    0.000    1.185    1.185 sklearn/utils/validation.py:1(<module>)
+6525/6372    0.079    0.000    1.119    0.000 {built-in method builtins.__build_class__}
+        1    0.000    0.000    1.102    1.102 sklearn/utils/_array_api.py:1(<module>)
+        1    0.000    0.000    0.973    0.973 mlflow/sklearn/__init__.py:379(log_model)
+        1    0.000    0.000    0.973    0.973 mlflow/models/model.py:1058(log)
+        1    0.000    0.000    0.940    0.940 sklearn/utils/fixes.py:1(<module>)
+        1    0.000    0.000    0.934    0.934 mlflow/artifacts/__init__.py:1(<module>)
+        1    0.000    0.000    0.929    0.929 mlflow/sklearn/__init__.py:175(save_model)
+        1    0.000    0.000    0.853    0.853 scipy/stats/__init__.py:1(<module>)
+        1    0.000    0.000    0.751    0.751 mlflow/utils/environment.py:744(_process_pip_requirements)
+        4    0.000    0.000    0.740    0.185 matplotlib/pyplot.py:1245(savefig)
+        1    0.000    0.000    0.728    0.728 mlflow/utils/requirements_utils.py:662(warn_dependency_requirement_mismatches)
+      180    0.001    0.000    0.728    0.004 mlflow/utils/requirements_utils.py:610(_check_requirement_satisfied)
+98297/89353    0.026    0.000    0.664    0.000 {built-in method builtins.hasattr}
+        1    0.000    0.000    0.646    0.646 mlflow/genai/__init__.py:1(<module>)
+      625    0.001    0.000    0.571    0.001 scipy/_lib/_docscrape.py:579(__init__)
+       12    0.000    0.000    0.559    0.047 matplotlib/artist.py:92(draw_wrapper)
+  1590/12    0.005    0.000    0.559    0.047 matplotlib/artist.py:53(draw_wrapper)
+       12    0.000    0.000    0.559    0.047 matplotlib/figure.py:3244(draw)
+    24/12    0.000    0.000    0.550    0.046 matplotlib/image.py:116(_draw_list_compositing_images)
+       12    0.000    0.000    0.550    0.046 matplotlib/axes/_base.py:3161(draw)

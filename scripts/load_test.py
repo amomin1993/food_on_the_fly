@@ -6,6 +6,7 @@ import collections
 import random
 import sys
 import time
+from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
@@ -64,7 +65,7 @@ def random_order(rng: random.Random) -> dict[str, Any]:
     }
 
 
-async def _ticker(rate_per_sec: float, duration_sec: float):
+async def _ticker(rate_per_sec: float, duration_sec: float) -> AsyncIterator[None]:
     # Anchored to wall-clock deadlines so RPS stays accurate under latency variance
     interval = 1.0 / rate_per_sec
     loop = asyncio.get_event_loop()

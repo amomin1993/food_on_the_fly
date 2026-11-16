@@ -360,8 +360,16 @@ preprocessor = ColumnTransformer(
         # OLD: ("weekday", weekday_transformer, ["Order_Date"]),
         # OLD: ("rush_hour", rush_hour_transformer, ["Time_Orderd"]),
         # NEW:
-        ("hour", make_categorical_pipeline(hour_of_day_transformer, "hour_of_day"), ["Time_Orderd"]),
-        ("day", make_categorical_pipeline(day_of_week_transformer, "day_of_week"), ["Order_Date"]),
+        (
+            "hour",
+            make_categorical_pipeline(hour_of_day_transformer, "hour_of_day"),
+            ["Time_Orderd"],
+        ),
+        (
+            "day",
+            make_categorical_pipeline(day_of_week_transformer, "day_of_week"),
+            ["Order_Date"],
+        ),
         # ... other transformers
     ]
 )

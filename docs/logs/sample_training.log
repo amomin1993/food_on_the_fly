@@ -1,0 +1,172 @@
+2026-11-15 16:10:59 | INFO     | __main__ | Starting training with config:
+model:
+  name: baseline
+  type: xgboost
+  parameters:
+    n_estimators: 50
+    max_depth: 3
+    learning_rate: 0.1
+    subsample: 0.8
+    colsample_bytree: 0.8
+    objective: reg:squarederror
+    random_state: 42
+    n_jobs: -1
+  features:
+    use_haversine: true
+    use_temporal: true
+    use_weather_encoding: true
+  expected_performance:
+    train_rmse: ~4.5-5.0 minutes
+    val_rmse: ~5.0-5.5 minutes
+    val_r2: ~0.70-0.75
+mlflow:
+  tracking_uri: file:./mlruns
+  experiment_name: food_delivery_prediction
+  run_name: xgboost_${model.name}_${model.parameters.n_estimators}_d${model.parameters.max_depth}_lr${model.parameters.learning_rate}
+evaluation:
+  run_id: null
+  selection_mode: latest
+  best_metric: val_rmse
+  best_metric_order: min
+data:
+  source_uri: gs://project-9aed1f8e-f40e-4a15-858-models/data/raw/zomato_dataset.csv
+  raw_path: data/raw
+  processed_path: data/processed
+  train_test_split: 0.8
+  random_state: 42
+  val_split: 0.1
+  date_col: Order_Date
+  temporal_baseline_days: 40
+  temporal_window_days: 7
+  train_ratio: 0.7
+  temporal_val_ratio: 0.15
+  temporal_test_ratio: 0.15
+features:
+  haversine:
+    enabled: true
+    lat_col1: Restaurant_latitude
+    lon_col1: Restaurant_longitude
+    lat_col2: Delivery_location_latitude
+    lon_col2: Delivery_location_longitude
+  weekday:
+    enabled: true
+    date_col: Order_Date
+  rush_hour:
+    enabled: true
+    time_col: Time_Orderd
+  hour_of_day:
+    enabled: false
+    time_col: Time_Orderd
+  day_of_week:
+    enabled: false
+    date_col: Order_Date
+logging:
+  level: INFO
+  output_dir: logs
+paths:
+  models_dir: models
+  logs_dir: logs
+  predictions_dir: predictions
+
+2026-11-15 16:10:59 | INFO     | __main__ | Using Hydra + MLflow + XGBoost for training
+2026-11-15 16:10:59 | INFO     | __main__ | ================================================================================
+2026-11-15 16:10:59 | INFO     | __main__ | Configurations
+2026-11-15 16:10:59 | INFO     | __main__ | model:
+  name: baseline
+  type: xgboost
+  parameters:
+    n_estimators: 50
+    max_depth: 3
+    learning_rate: 0.1
+    subsample: 0.8
+    colsample_bytree: 0.8
+    objective: reg:squarederror
+    random_state: 42
+    n_jobs: -1
+  features:
+    use_haversine: true
+    use_temporal: true
+    use_weather_encoding: true
+  expected_performance:
+    train_rmse: ~4.5-5.0 minutes
+    val_rmse: ~5.0-5.5 minutes
+    val_r2: ~0.70-0.75
+mlflow:
+  tracking_uri: file:./mlruns
+  experiment_name: food_delivery_prediction
+  run_name: xgboost_${model.name}_${model.parameters.n_estimators}_d${model.parameters.max_depth}_lr${model.parameters.learning_rate}
+evaluation:
+  run_id: null
+  selection_mode: latest
+  best_metric: val_rmse
+  best_metric_order: min
+data:
+  source_uri: gs://project-9aed1f8e-f40e-4a15-858-models/data/raw/zomato_dataset.csv
+  raw_path: data/raw
+  processed_path: data/processed
+  train_test_split: 0.8
+  random_state: 42
+  val_split: 0.1
+  date_col: Order_Date
+  temporal_baseline_days: 40
+  temporal_window_days: 7
+  train_ratio: 0.7
+  temporal_val_ratio: 0.15
+  temporal_test_ratio: 0.15
+features:
+  haversine:
+    enabled: true
+    lat_col1: Restaurant_latitude
+    lon_col1: Restaurant_longitude
+    lat_col2: Delivery_location_latitude
+    lon_col2: Delivery_location_longitude
+  weekday:
+    enabled: true
+    date_col: Order_Date
+  rush_hour:
+    enabled: true
+    time_col: Time_Orderd
+  hour_of_day:
+    enabled: false
+    time_col: Time_Orderd
+  day_of_week:
+    enabled: false
+    date_col: Order_Date
+logging:
+  level: INFO
+  output_dir: logs
+paths:
+  models_dir: models
+  logs_dir: logs
+  predictions_dir: predictions
+
+2026-11-15 16:10:59 | INFO     | __main__ | Loading pre-split training and validation data...
+2026-11-15 16:10:59 | INFO     | food_on_the_fly.data.loaders | Loading processed data: data/processed/train.csv
+2026-11-15 16:10:59 | INFO     | food_on_the_fly.data.loaders | Loading processed data: data/processed/val.csv
+2026-11-15 16:10:59 | INFO     | __main__ | Train samples: 20838, Validation samples: 4465
+2026-11-15 16:10:59 | INFO     | __main__ | Features and target separated. X shape: (20838, 17), y shape: (20838,)
+2026-11-15 16:10:59 | INFO     | __main__ | Target column: Time_taken (min)
+2026-11-15 16:10:59 | INFO     | __main__ | Train samples: 20838, Validation samples: 4465
+2026-11-15 16:10:59 | INFO     | __main__ | Building preprocessing pipeline...
+2026-11-15 16:10:59 | INFO     | __main__ | Enabled feature transformers: ['numeric', 'categorical', 'haversine', 'rush_hour', 'weekday']
+2026-11-15 16:10:59 | INFO     | __main__ | Training XGBoost model...
+2026-11-15 16:10:59 | INFO     | food_on_the_fly.utils.monitoring | System metrics logger started (interval=0.1s)
+2026-11-15 16:10:59 | INFO     | __main__ | Training complete in 0.14s
+2026-11-15 16:10:59 | INFO     | __main__ | Making predictions...
+2026-11-15 16:11:00 | INFO     | __main__ | ================================================================================
+2026-11-15 16:11:00 | INFO     | __main__ | TRAINING METRICS
+2026-11-15 16:11:00 | INFO     | __main__ |   RMSE: 4.73 minutes
+2026-11-15 16:11:00 | INFO     | __main__ |   MAE:  3.76 minutes
+2026-11-15 16:11:00 | INFO     | __main__ |   R²:   0.7418
+2026-11-15 16:11:00 | INFO     | __main__ |
+2026-11-15 16:11:00 | INFO     | __main__ | VALIDATION METRICS
+2026-11-15 16:11:00 | INFO     | __main__ |   RMSE: 4.83 minutes
+2026-11-15 16:11:00 | INFO     | __main__ |   MAE:  3.81 minutes
+2026-11-15 16:11:00 | INFO     | __main__ |   R²:   0.7363
+2026-11-15 16:11:00 | INFO     | __main__ | ================================================================================
+2026-11-15 16:11:00 | INFO     | __main__ | Generating CML outputs...
+2026-11-15 16:11:01 | INFO     | __main__ | Top 5 important features: ['Delivery_person_Age', 'distance_km', 'multiple_deliveries', 'Delivery_person_Ratings', 'Road_traffic_density_Low']
+2026-11-15 16:11:01 | INFO     | __main__ | CML outputs generated: metrics.txt + 4 PNG files
+2026-11-15 16:11:01 | INFO     | __main__ | Model logged to MLflow
+2026-11-15 16:11:01 | INFO     | __main__ | Pipeline saved to models/pipeline.joblib
+2026-11-15 16:11:01 | INFO     | __main__ | Training complete! 🎉

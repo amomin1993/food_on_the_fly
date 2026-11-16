@@ -71,3 +71,24 @@ def test_predict_negative_clamped() -> None:
     client = TestClient(main.app)
     resp = client.post("/predict", json=_EXAMPLE)
     assert resp.json()["predicted_time_min"] == 0.0
+
+
+def test_cors_allows_hf_space_origin() -> None:
+    client = TestClient(main.app)
+    origin = "https://someone-food-on-the-fly.static.hf.space"
+    resp = client.options(
+        "/predict",
+        headers={
+            "Origin": origin,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.headers["access-control-allow-origin"] == origin
+
+
+def test_cors_rejects_other_origins() -> None:
+    client = TestClient(main.app)
+    resp = client.get("/health", headers={"Origin": "https://example.com"})
+    assert "access-control-allow-origin" not in resp.headers

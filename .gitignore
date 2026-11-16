@@ -162,3 +162,12 @@ metrics.txt
 *.png
 !docs/**/*.png
 multirun/
+
+# CML local test artifact
+comparison.md
+
+# Committed sample logs
+!docs/logs/*.log
+
+# Batch scoring output (python -m food_on_the_fly.predict_model)
+predictions/

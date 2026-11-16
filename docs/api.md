@@ -9,9 +9,16 @@ Project-wide path constants and typed config dataclasses.
 ```python
 from food_on_the_fly.config import (
     PROJECT_ROOT,
-    DATA_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR,
-    MODELS_DIR, REPORTS_DIR, FIGURES_DIR,
-    Config, TrainingConfig, DataConfig, DEFAULT_CONFIG,
+    DATA_DIR,
+    RAW_DATA_DIR,
+    PROCESSED_DATA_DIR,
+    MODELS_DIR,
+    REPORTS_DIR,
+    FIGURES_DIR,
+    Config,
+    TrainingConfig,
+    DataConfig,
+    DEFAULT_CONFIG,
 )
 ```
 
@@ -92,7 +99,7 @@ set_seed(42)
 
 ```bash
 python -m food_on_the_fly.train_model --epochs 100 --batch-size 64
-python -m food_on_the_fly.predict_model --model-path models/model.joblib --input data/processed/test.csv
+python -m food_on_the_fly.predict_model --model-path models/pipeline.joblib --input data/processed/test.csv
 ```
 
 ## Hydra Configuration

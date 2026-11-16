@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Food on the Fly · Delivery Time Estimator</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #151b24;
+    --panel-2: #1b2330;
+    --line: #263142;
+    --text: #e6edf3;
+    --muted: #8b98a9;
+    --accent: #ff7a45;
+    --accent-soft: rgba(255, 122, 69, 0.14);
+    --fast: #3fd68f;
+    --normal: #f5b942;
+    --slow: #ff5d5d;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: Inter, system-ui, -apple-system, sans-serif; font-size: 14px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header { display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 18px 28px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 38px; height: 38px; border-radius: 10px; background: var(--accent-soft);
+    display: grid; place-items: center; font-size: 20px; }
+  .brand h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: -0.01em; }
+  .brand p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+  .status { display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+    border: 1px solid var(--line); border-radius: 999px; font-size: 12.5px; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.ok { background: var(--fast); box-shadow: 0 0 0 4px rgba(63, 214, 143, .15); }
+  .dot.wait { background: var(--normal); animation: pulse 1.2s infinite; }
+  .dot.down { background: var(--slow); }
+  @keyframes pulse { 50% { opacity: .35; } }
+
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 22px;
+    padding: 22px 28px 40px; max-width: 1280px; margin: 0 auto; }
+  @media (max-width: 980px) { main { grid-template-columns: 1fr; } .result { position: static !important; } }
+
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+  .presets span { color: var(--muted); font-size: 12.5px; margin-right: 4px; }
+  .chip { border: 1px solid var(--line); background: var(--panel); color: var(--text);
+    padding: 7px 12px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 12.5px; }
+  .chip:hover { border-color: var(--accent); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 16px; }
+  .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); margin: 0 0 14px; font-weight: 600; display: flex; justify-content: space-between; }
+  .card h2 em { font-style: normal; text-transform: none; letter-spacing: 0; color: var(--text); font-weight: 600; }
+
+  #map { height: 300px; border-radius: 10px; border: 1px solid var(--line); background: #0b0f14; }
+  .map-help { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  details.coords { margin-top: 10px; }
+  details.coords summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+  .coord-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid2, .coord-grid { grid-template-columns: 1fr 1fr; } }
+  .field label { display: flex; justify-content: space-between; font-size: 12.5px;
+    color: var(--muted); margin-bottom: 7px; }
+  .field label b { color: var(--text); font-weight: 600; }
+  input[type=number], input[type=date], input[type=time] {
+    width: 100%; background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 8px; padding: 9px 10px; font: inherit; color-scheme: dark; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg button { flex: 1 1 auto; background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--muted); border-radius: 8px; padding: 8px 10px; cursor: pointer; font: inherit;
+    font-size: 12.5px; white-space: nowrap; }
+  .seg button:hover { color: var(--text); }
+  .seg button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+  .stack { display: grid; gap: 16px; }
+
+  .result { position: sticky; top: 18px; align-self: start; }
+  .eta { text-align: center; padding: 26px 10px 18px; }
+  .eta .num { font-size: 64px; font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+    transition: color .3s; font-variant-numeric: tabular-nums; }
+  .eta .unit { font-size: 18px; color: var(--muted); font-weight: 600; margin-left: 4px; }
+  .eta .tag { display: inline-block; margin-top: 12px; padding: 5px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; background: var(--panel-2); }
+  .bar { height: 8px; border-radius: 999px; background: var(--panel-2); margin: 18px 4px 6px; position: relative;
+    background: linear-gradient(90deg, var(--fast) 0 36%, var(--normal) 36% 64%, var(--slow) 64%); opacity: .9; }
+  .bar i { position: absolute; top: -5px; width: 4px; height: 18px; border-radius: 2px; background: #fff;
+    transition: left .45s cubic-bezier(.2,.8,.2,1); left: 0; }
+  .scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; padding: 0 4px; }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+  .fact { background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+  .fact small { display: block; color: var(--muted); font-size: 11px; margin-bottom: 3px; }
+  .fact span { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .err { color: var(--slow); font-size: 12.5px; margin-top: 12px; min-height: 1em; text-align: center; }
+
+  .req pre { background: #0b0f14; border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+    font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: #c9d4e0; overflow: auto;
+    max-height: 260px; margin: 0; }
+  .req .row { display: flex; gap: 8px; margin-top: 10px; }
+  .btn { flex: 1; background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 8px; padding: 8px; cursor: pointer; font: inherit; font-size: 12.5px; }
+  .btn:hover { border-color: var(--accent); }
+  footer { color: var(--muted); font-size: 12px; text-align: center; padding: 0 0 28px; }
+  .leaflet-container { font: inherit; }
+  .pin { font-size: 24px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,.6)); }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">🛵</div>
+    <div>
+      <h1>Food on the Fly</h1>
+      <p>Delivery time estimator · XGBoost model served on Google Cloud Run</p>
+    </div>
+  </div>
+  <div class="status" title="Live health check against the prediction API">
+    <span class="dot" id="dot"></span><span id="statusText">Checking API…</span>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="presets">
+      <span>Try a scenario:</span>
+      <button class="chip" data-preset="lunch">☀️ Quick lunch, light traffic</button>
+      <button class="chip" data-preset="evening">🌫️ Foggy evening rush</button>
+      <button class="chip" data-preset="festival">🎉 Festival night, traffic jam</button>
+    </div>
+
+    <div class="card">
+      <h2>Route <em id="distance">0.0 km</em></h2>
+      <div id="map"></div>
+      <div class="map-help">Drag 🍔 (restaurant) and 🏠 (customer) to change the route. The model uses the straight-line distance between them.</div>
+      <details class="coords">
+        <summary>Edit coordinates</summary>
+        <div class="coord-grid">
+          <div class="field"><label>Restaurant lat</label><input type="number" step="0.000001" id="rlat"></div>
+          <div class="field"><label>Restaurant lon</label><input type="number" step="0.000001" id="rlon"></div>
+          <div class="field"><label>Customer lat</label><input type="number" step="0.000001" id="dlat"></div>
+          <div class="field"><label>Customer lon</label><input type="number" step="0.000001" id="dlon"></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Order</h2>
+        <div class="stack">
+          <div class="grid2">
+            <div class="field"><label>Date</label><input type="date" id="date"></div>
+            <div class="field"><label>Time ordered</label><input type="time" id="time"></div>
+          </div>
+          <div class="field"><label>Type of order</label>
+            <div class="seg" data-name="Type_of_order">
+              <button data-v="Snack">Snack</button><button data-v="Meal">Meal</button>
+              <button data-v="Drinks">Drinks</button><button data-v="Buffet">Buffet</button>
+            </div>
+          </div>
+          <div class="field"><label>Other deliveries on the same trip <b id="multiV"></b></label>
+            <input type="range" id="multi" min="0" max="3" step="1"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Courier</h2>
+        <div class="stack">
+          <div class="field"><label>Age <b id="ageV"></b></label><input type="range" id="age" min="18" max="50" step="1"></div>
+          <div class="field"><label>Rating <b id="ratingV"></b></label><input type="range" id="rating" min="1" max="5" step="0.1"></div>
+          <div class="field"><label>Vehicle</label>
+            <div class="seg" data-name="Type_of_vehicle">
+              <button data-v="motorcycle">Motorcycle</button><button data-v="scooter">Scooter</button>
+              <button data-v="electric_scooter">E-scooter</button><button data-v="bicycle">Bicycle</button>
+            </div>
+          </div>
+          <div class="field"><label>Vehicle condition <b id="condV"></b></label><input type="range" id="cond" min="0" max="3" step="1"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Conditions</h2>
+      <div class="stack">
+        <div class="field"><label>Road traffic</label>
+          <div class="seg" data-name="Road_traffic_density">
+            <button data-v="Low">Low</button><button data-v="Medium">Medium</button>
+            <button data-v="High">High</button><button data-v="Jam">Jam</button>
+          </div>
+        </div>
+        <div class="field"><label>Weather</label>
+          <div class="seg" data-name="Weather_conditions">
+            <button data-v="Sunny">☀️ Sunny</button><button data-v="Cloudy">☁️ Cloudy</button>
+            <button data-v="Windy">🌬️ Windy</button><button data-v="Fog">🌫️ Fog</button>
+            <button data-v="Stormy">⛈️ Stormy</button><button data-v="Sandstorms">🏜️ Sandstorm</button>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>City type</label>
+            <div class="seg" data-name="City">
+              <button data-v="Urban">Urban</button><button data-v="Metropolitian">Metro</button>
+              <button data-v="Semi-Urban">Semi-urban</button>
+            </div>
+          </div>
+          <div class="field"><label>Festival day</label>
+            <div class="seg" data-name="Festival">
+              <button data-v="No">No</button><button data-v="Yes">Yes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="result">
+    <div class="card">
+      <h2>Estimated delivery time</h2>
+      <div class="eta">
+        <div><span class="num" id="eta">--</span><span class="unit">min</span></div>
+        <div class="tag" id="tag">waiting for input</div>
+      </div>
+      <div class="bar"><i id="needle"></i></div>
+      <div class="scale"><span>10</span><span>20</span><span>30</span><span>40</span><span>50+</span></div>
+      <div class="facts">
+        <div class="fact"><small>Served by</small><span>Cloud Run</span></div>
+        <div class="fact"><small>Round trip</small><span id="latency">--</span></div>
+        <div class="fact"><small>Model</small><span id="model">--</span></div>
+        <div class="fact"><small>Distance</small><span id="distance2">--</span></div>
+      </div>
+      <div class="err" id="err"></div>
+    </div>
+
+    <div class="card req">
+      <h2>Request sent to the API</h2>
+      <pre id="payload">{}</pre>
+      <div class="row">
+        <button class="btn" id="copyCurl">Copy as curl</button>
+        <a class="btn" id="docs" target="_blank" rel="noopener" style="text-align:center">Open API docs</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  DePaul SE 489 MLOps · <a href="https://github.com/amomin1993/food_on_the_fly" target="_blank" rel="noopener">Source on GitHub</a>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// The API base can be overridden with ?api=https://... for testing other deployments.
+const API = (new URLSearchParams(location.search).get("api") ||
+  "https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app").replace(/\/$/, "");
+document.getElementById("docs").href = API + "/docs";
+
+const PRESETS = {
+  lunch: { r: [19.0760, 72.8777], d: [19.0896, 72.8656], date: "2022-03-15", time: "12:30",
+    Type_of_order: "Meal", multi: 0, age: 26, rating: 4.8, Type_of_vehicle: "motorcycle", cond: 2,
+    Road_traffic_density: "Low", Weather_conditions: "Sunny", City: "Urban", Festival: "No" },
+  evening: { r: [12.9716, 77.5946], d: [13.0050, 77.6300], date: "2022-03-24", time: "19:15",
+    Type_of_order: "Snack", multi: 1, age: 35, rating: 4.2, Type_of_vehicle: "scooter", cond: 1,
+    Road_traffic_density: "High", Weather_conditions: "Fog", City: "Metropolitian", Festival: "No" },
+  festival: { r: [28.6139, 77.2090], d: [28.6600, 77.2500], date: "2022-03-18", time: "21:00",
+    Type_of_order: "Buffet", multi: 3, age: 38, rating: 3.9, Type_of_vehicle: "motorcycle", cond: 0,
+    Road_traffic_density: "Jam", Weather_conditions: "Stormy", City: "Metropolitian", Festival: "Yes" },
+};
+
+const $ = (id) => document.getElementById(id);
+const seg = {};
+document.querySelectorAll(".seg").forEach((el) => {
+  const name = el.dataset.name;
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    setSeg(name, b.dataset.v);
+    schedule();
+  });
+});
+function setSeg(name, value) {
+  seg[name] = value;
+  document.querySelectorAll(`.seg[data-name="${name}"] button`).forEach((b) =>
+    b.classList.toggle("on", b.dataset.v === value));
+}
+
+// ---------------------------------------------------------------- map
+let map, rMarker, dMarker, line;
+const pin = (emoji) => L.divIcon({ className: "", html: `<div class="pin">${emoji}</div>`,
+  iconSize: [26, 26], iconAnchor: [13, 24] });
+function initMap(r, d) {
+  if (typeof L === "undefined") { $("map").style.display = "none"; return; }
+  map = L.map("map", { zoomControl: true, attributionControl: true });
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 16, attribution: "Tiles &copy; Esri" }).addTo(map);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 16 }).addTo(map);
+  rMarker = L.marker(r, { draggable: true, icon: pin("🍔") }).addTo(map);
+  dMarker = L.marker(d, { draggable: true, icon: pin("🏠") }).addTo(map);
+  line = L.polyline([r, d], { color: "#ff7a45", weight: 3, dashArray: "6 8" }).addTo(map);
+  [rMarker, dMarker].forEach((m) => m.on("drag", () => { syncFromMap(); }).on("dragend", schedule));
+}
+function setRoute(r, d) {
+  $("rlat").value = r[0].toFixed(6); $("rlon").value = r[1].toFixed(6);
+  $("dlat").value = d[0].toFixed(6); $("dlon").value = d[1].toFixed(6);
+  if (map) {
+    rMarker.setLatLng(r); dMarker.setLatLng(d); line.setLatLngs([r, d]);
+    map.fitBounds(L.latLngBounds([r, d]).pad(0.6));
+  }
+  updateDistance();
+}
+function syncFromMap() {
+  const r = rMarker.getLatLng(), d = dMarker.getLatLng();
+  $("rlat").value = r.lat.toFixed(6); $("rlon").value = r.lng.toFixed(6);
+  $("dlat").value = d.lat.toFixed(6); $("dlon").value = d.lng.toFixed(6);
+  line.setLatLngs([r, d]);
+  updateDistance();
+}
+["rlat", "rlon", "dlat", "dlon"].forEach((id) => $(id).addEventListener("change", () => {
+  setRoute([+$("rlat").value, +$("rlon").value], [+$("dlat").value, +$("dlon").value]);
+  schedule();
+}));
+function haversine(a, b, c, d) {
+  const R = 6371, rad = Math.PI / 180;
+  const x = Math.sin((c - a) * rad / 2) ** 2 +
+    Math.cos(a * rad) * Math.cos(c * rad) * Math.sin((d - b) * rad / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+function updateDistance() {
+  const km = haversine(+$("rlat").value, +$("rlon").value, +$("dlat").value, +$("dlon").value);
+  $("distance").textContent = $("distance2").textContent = km.toFixed(1) + " km";
+}
+
+// ---------------------------------------------------------------- sliders
+const sliders = { age: (v) => v + " yrs", rating: (v) => (+v).toFixed(1) + " ★",
+  cond: (v) => ["poor", "fair", "good", "excellent"][v], multi: (v) => v };
+Object.entries(sliders).forEach(([id, fmt]) => {
+  const el = $(id), out = $(id + "V");
+  const show = () => { out.textContent = fmt(el.value); };
+  el.addEventListener("input", () => { show(); schedule(); });
+  el._show = show;
+});
+["date", "time"].forEach((id) => $(id).addEventListener("change", schedule));
+
+function applyPreset(name) {
+  const p = PRESETS[name];
+  setRoute(p.r, p.d);
+  $("date").value = p.date; $("time").value = p.time;
+  ["age", "rating", "cond", "multi"].forEach((id) => { $(id).value = p[id]; $(id)._show(); });
+  ["Type_of_order", "Type_of_vehicle", "Road_traffic_density", "Weather_conditions", "City", "Festival"]
+    .forEach((k) => setSeg(k, p[k]));
+  schedule(0);
+}
+document.querySelectorAll("[data-preset]").forEach((b) =>
+  b.addEventListener("click", () => applyPreset(b.dataset.preset)));
+
+// ---------------------------------------------------------------- request
+function payload() {
+  const [y, m, d] = $("date").value.split("-");
+  return {
+    Delivery_person_Age: +$("age").value,
+    Delivery_person_Ratings: +$("rating").value,
+    Restaurant_latitude: +$("rlat").value,
+    Restaurant_longitude: +$("rlon").value,
+    Delivery_location_latitude: +$("dlat").value,
+    Delivery_location_longitude: +$("dlon").value,
+    Order_Date: `${d}-${m}-${y}`,
+    Time_Orderd: $("time").value,
+    Weather_conditions: seg.Weather_conditions,
+    Road_traffic_density: seg.Road_traffic_density,
+    Vehicle_condition: +$("cond").value,
+    Type_of_order: seg.Type_of_order,
+    Type_of_vehicle: seg.Type_of_vehicle,
+    multiple_deliveries: +$("multi").value,
+    Festival: seg.Festival,
+    City: seg.City,
+  };
+}
+
+let timer, seq = 0;
+function schedule(delay = 350) { clearTimeout(timer); timer = setTimeout(predict, delay); }
+
+async function predict() {
+  const body = payload();
+  $("payload").textContent = JSON.stringify(body, null, 2);
+  const mine = ++seq;
+  const slow = setTimeout(() => setStatus("wait", "Waking up the API (cold start)…"), 1500);
+  const t0 = performance.now();
+  try {
+    const res = await fetch(API + "/predict", { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const ms = performance.now() - t0;
+    if (!res.ok) throw new Error(`API returned ${res.status}`);
+    const json = await res.json();
+    if (mine !== seq) return;
+    show(json.predicted_time_min, ms, json.model_version);
+    $("err").textContent = "";
+    setStatus("ok", "API online · Cloud Run");
+  } catch (e) {
+    if (mine !== seq) return;
+    $("err").textContent = "Could not reach the prediction API. " + e.message;
+    setStatus("down", "API unreachable");
+  } finally {
+    clearTimeout(slow);
+  }
+}
+
+function show(minutes, ms, version) {
+  const v = Math.max(0, minutes);
+  const eta = $("eta");
+  const from = parseFloat(eta.textContent) || 0;
+  const start = performance.now();
+  (function step(now) {
+    const k = Math.min(1, (now - start) / 450);
+    eta.textContent = (from + (v - from) * (1 - (1 - k) ** 3)).toFixed(1);
+    if (k < 1) requestAnimationFrame(step);
+  })(start);
+  const [label, color] = v < 20 ? ["Fast delivery", "var(--fast)"]
+    : v < 35 ? ["Typical delivery", "var(--normal)"] : ["Slow delivery", "var(--slow)"];
+  eta.style.color = color;
+  $("tag").textContent = label; $("tag").style.color = color;
+  $("needle").style.left = `calc(${Math.min(100, Math.max(0, (v - 10) / 40 * 100))}% - 2px)`;
+  $("latency").textContent = Math.round(ms) + " ms";
+  $("model").textContent = (version || "").replace(".joblib", "");
+}
+
+function setStatus(kind, text) { $("dot").className = "dot " + kind; $("statusText").textContent = text; }
+
+async function health() {
+  setStatus("wait", "Checking API…");
+  try {
+    const res = await fetch(API + "/health");
+    const json = await res.json();
+    setStatus(json.model_loaded ? "ok" : "down",
+      json.model_loaded ? "API online · Cloud Run" : "API up, model not loaded");
+  } catch { setStatus("down", "API unreachable"); }
+}
+
+$("copyCurl").addEventListener("click", async () => {
+  const cmd = `curl -X POST ${API}/predict \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(payload())}'`;
+  try { await navigator.clipboard.writeText(cmd); $("copyCurl").textContent = "Copied ✓"; }
+  catch { $("copyCurl").textContent = "Copy blocked by browser"; }
+  setTimeout(() => ($("copyCurl").textContent = "Copy as curl"), 1600);
+});
+
+initMap(PRESETS.lunch.r, PRESETS.lunch.d);
+health();
+applyPreset("lunch");
+</script>
+</body>
+</html>

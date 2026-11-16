@@ -24,8 +24,8 @@ def setup_logging(level: LogLevel = "INFO", fmt: str | None = None) -> None:
     root = logging.getLogger()
     root.setLevel(level)
 
-    # for existing in list(root.handlers):
-    #     root.removeHandler(existing)
+    for existing in list(root.handlers):
+        root.removeHandler(existing)
 
     console_handler: logging.Handler
     try:
