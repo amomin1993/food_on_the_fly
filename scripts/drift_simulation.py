@@ -49,7 +49,8 @@ def batch_predict(url: str, record: dict, n: int) -> list[float]:
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read())["predictions"]
+        predictions: list[float] = json.loads(resp.read())["predictions"]
+        return predictions
 
 
 def main() -> None:

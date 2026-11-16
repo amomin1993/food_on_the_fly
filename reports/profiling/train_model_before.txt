@@ -56,5 +56,3 @@ Sun Nov 15 16:10:01 2026    reports/profiling/train_model_before.prof
        12    0.000    0.000    0.559    0.047 matplotlib/figure.py:3244(draw)
     24/12    0.000    0.000    0.550    0.046 matplotlib/image.py:116(_draw_list_compositing_images)
        12    0.000    0.000    0.550    0.046 matplotlib/axes/_base.py:3161(draw)
-
-

@@ -99,7 +99,7 @@ set_seed(42)
 
 ```bash
 python -m food_on_the_fly.train_model --epochs 100 --batch-size 64
-python -m food_on_the_fly.predict_model --model-path models/model.joblib --input data/processed/test.csv
+python -m food_on_the_fly.predict_model --model-path models/pipeline.joblib --input data/processed/test.csv
 ```
 
 ## Hydra Configuration

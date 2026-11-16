@@ -1,0 +1,4 @@
+# Keep generated reports out of GitHub's language statistics
+scalene-profile.html linguist-generated
+reports/** linguist-generated
+notebooks/*.ipynb linguist-documentation

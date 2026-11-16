@@ -14,6 +14,9 @@ region `us-central1`.
 | Runtime identity | `fof-api-runtime@food-on-the-fly.iam.gserviceaccount.com` (no roles; the model is baked into the image) |
 | CI/CD identity | `github-deployer@food-on-the-fly.iam.gserviceaccount.com` via Workload Identity Federation (no JSON keys) |
 | Dataset for CI | `gs://food-on-the-fly-data-amomin/data/raw/zomato_dataset.csv` |
+| Cloud Function | https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict (section 10) |
+| Hugging Face Space | https://huggingface.co/spaces/amomin1993/food-on-the-fly (section 10) |
+| Vertex AI training | `scripts/gcp_extras.sh`, models in `gs://food-on-the-fly-data-amomin/models/` (section 10) |
 
 Architecture diagrams: [docs/architecture.md](docs/architecture.md).
 Endpoint reference: [docs/http_api.md](docs/http_api.md).
@@ -171,16 +174,96 @@ gcloud run services update-traffic food-on-the-fly-api --region us-central1 \
 
 Or redeploy an older image tag with the manual command in section 4.
 
-## 10. Options not used
+## 10. Vertex AI training, Cloud Function and Hugging Face Space
 
-- **Cloud Functions:** the model needs scikit-learn, XGBoost and the custom
-  transformers at fixed versions. A container gives the same image in CI, on
-  a laptop and in production, so Cloud Run was the better fit.
-- **Vertex AI / Compute Engine training:** training takes under a second on
-  CPU and runs in the CML job on every PR, so dedicated cloud training was not
-  needed.
-- **Hugging Face Spaces:** a Gradio app (`app/app.py`) and workflow
-  (`.github/workflows/deploy-hf.yml`) exist but were not deployed.
+All three are set up by one script, run from the repo root in Cloud Shell
+after `scripts/gcp_setup.sh`:
+
+```bash
+bash scripts/gcp_extras.sh 2>&1 | tee ~/gcp_extras_log.txt
+```
+
+### Vertex AI custom training
+
+| Piece | Value |
+| --- | --- |
+| Image | `us-central1-docker.pkg.dev/food-on-the-fly/food-on-the-fly/train:<git sha>` from `dockerfiles/Dockerfile` |
+| Machine | one `n1-standard-4` worker, no GPU |
+| Identity | `fof-trainer@food-on-the-fly.iam.gserviceaccount.com` (object admin on the bucket, log writer) |
+| Input | `gs://food-on-the-fly-data-amomin/data/raw/zomato_dataset.csv` (read through `gcsfs`, `source_uri` in `configs/config.yaml`) |
+| Command | temporal split, `train_model model=xgboost_optimized`, `scripts/upload_artifacts.py` |
+| Output | `gs://food-on-the-fly-data-amomin/models/<UTC run id>/` |
+
+Submit a run by hand (the script writes `/tmp/vertex_job.yaml` first):
+
+```bash
+gcloud ai custom-jobs create --region=us-central1 \
+  --display-name=fof-train-manual --config=/tmp/vertex_job.yaml
+gcloud ai custom-jobs list --region=us-central1 --limit=5
+gcloud ai custom-jobs stream-logs <job resource name>
+```
+
+Each run gets its own folder, so older models are never overwritten.
+Retrieve one:
+
+```bash
+gcloud storage ls gs://food-on-the-fly-data-amomin/models/
+gcloud storage cp gs://food-on-the-fly-data-amomin/models/20261115-225611/pipeline.joblib models/
+gcloud storage cat gs://food-on-the-fly-data-amomin/models/20261115-225611/metrics.txt
+```
+
+First run: job `8788464962721808384`, validation RMSE 3.95 min, MAE 3.12 min,
+R² 0.823. Most of the 16 minutes was waiting for the machine; training itself
+took under a minute.
+
+### Cloud Function
+
+| Piece | Value |
+| --- | --- |
+| Name | `fof-predict` (gen2, Python 3.11, HTTP trigger, public) |
+| URL | https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict |
+| Resources | 1 GiB, 60 s timeout, max 2 instances |
+| Source | `deploy/cloud_function/` + `src/food_on_the_fly/` + `models/pipeline.joblib`, packaged by the script |
+| Identities | runs as `fof-api-runtime`, built by `fof-builder` (`roles/cloudbuild.builds.builder`) |
+
+The handler reuses the API's request schemas and model loader, so the
+request and response bodies match Cloud Run's `/predict` and `/predict/batch`:
+
+```bash
+FN=https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict
+curl -s $FN                     # health: {"model_loaded":true,...,"runtime":"cloud-functions"}
+curl -s -X POST $FN -H "Content-Type: application/json" \
+  -d @docs/examples/predict_request.json      # {"predicted_time_min":17.52,...}
+```
+
+A body with `"instances": [...]` is scored as a batch. Invalid input returns
+422 with the validation errors, a non-JSON body returns 400.
+
+### Hugging Face Space
+
+- **URL:** https://huggingface.co/spaces/amomin1993/food-on-the-fly
+- **Page:** `app/index.html`, a single static page. Hugging Face's free tier
+  only hosts static Spaces, so the Gradio app (`app/app.py`) is kept for local
+  use (`python app/app.py`) and the Space calls the Cloud Run API from the
+  browser instead of loading the model itself.
+- **Deploy:** `.github/workflows/deploy-hf.yml` uploads `app/` to the Space on
+  every push to `main` that touches `app/` or the model, or by hand from the
+  Actions tab. Secrets: `HF_TOKEN` (write token) and `HF_SPACE_ID`
+  (`amomin1993/food-on-the-fly`).
+- **CORS:** the API allows `https://*.hf.space` and localhost. Override with
+  the `CORS_ORIGIN_REGEX` environment variable on the Cloud Run service.
+
+Walkthrough:
+
+1. The status pill (top right) calls `/health` on load and turns green when
+   the model is loaded.
+2. Pick a scenario (quick lunch, foggy evening, festival night) or drag the
+   🍔 restaurant and 🏠 customer pins. The straight-line distance updates live.
+3. Change order, courier and conditions. Every change sends one request to
+   `/predict` and shows the estimate, a fast / typical / slow band, and the
+   round-trip time.
+4. The panel on the right shows the exact JSON sent. **Copy as curl** gives
+   the same request for a terminal, and **Open API docs** opens Swagger UI.
 
 ## 11. Troubleshooting
 

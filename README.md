@@ -1,8 +1,31 @@
-<img width="2000" height="2000" alt="image" src="https://github.com/user-attachments/assets/259c9180-278f-41ad-b213-d02d4135c092" />
+<img width="220" alt="Food on the Fly logo" src="https://github.com/user-attachments/assets/259c9180-278f-41ad-b213-d02d4135c092" />
 
 # Food on the Fly
 
+[![PR checks](https://github.com/amomin1993/food_on_the_fly/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/amomin1993/food_on_the_fly/actions/workflows/pr-checks.yml)
+[![Deploy to Cloud Run](https://github.com/amomin1993/food_on_the_fly/actions/workflows/deploy.yml/badge.svg)](https://github.com/amomin1993/food_on_the_fly/actions/workflows/deploy.yml)
+[![Deploy to Hugging Face](https://github.com/amomin1993/food_on_the_fly/actions/workflows/deploy-hf.yml/badge.svg)](https://github.com/amomin1993/food_on_the_fly/actions/workflows/deploy-hf.yml)
+
 A food delivery prediction AI for estimated delivery times
+
+**Status:** complete, final submission (November 2026). Phases 1 and 2 and most of Phase 3 were built by the team in spring 2026. The Phase 3 deployment, evidence and final report were completed by Abdul Momin in this fork; see [Team Contributions](#team-contributions) and [FINAL_REPORT.md](FINAL_REPORT.md).
+
+## Demo and Live Deployment
+
+- **Demo video:** https://www.youtube.com/watch?v=dnUN4Xo9UOI
+
+  [![Food on the Fly demo](https://img.youtube.com/vi/dnUN4Xo9UOI/hqdefault.jpg)](https://www.youtube.com/watch?v=dnUN4Xo9UOI)
+
+- **Web app (Hugging Face Space):** https://huggingface.co/spaces/amomin1993/food-on-the-fly
+- **Prediction API (Cloud Run):** https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app (interactive docs at [`/docs`](https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/docs))
+- **Serverless endpoint (Cloud Functions):** https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict (deleted on 2026-11-15 after the demo as part of the cleanup; see the dated screenshot and sample response in [PHASE3.md](PHASE3.md))
+- **Cloud training (Vertex AI):** custom job reading data from Cloud Storage, models in `gs://food-on-the-fly-data-amomin/models/`
+- **How it is deployed:** [DEPLOYMENT.md](DEPLOYMENT.md) · **Teardown and cost:** [CLEANUP.md](CLEANUP.md) · **Changes:** [CHANGELOG.md](CHANGELOG.md)
+
+```bash
+curl -s https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/health
+# {"status":"ok","model_loaded":true,"model_version":"pipeline.joblib"}
+```
 
 ## Team Information
 
@@ -39,7 +62,7 @@ flowchart TD
     subgraph Training
         D --> E[train_model.py\nsklearn Pipeline]
         E -->|log runs| F[(MLflow\nExperiment Tracking)]
-        E -->|joblib| G[(models/\nmodel.joblib)]
+        E -->|joblib| G[(models/\npipeline.joblib)]
     end
 
     subgraph Inference
@@ -60,17 +83,6 @@ flowchart TD
 
 Detailed data, training, serving and CI/CD diagrams are in [docs/architecture.md](docs/architecture.md).
 
-## Live Deployment
-
-- **Prediction API (Cloud Run):** https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app (interactive docs at [`/docs`](https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/docs))
-- **Demo video:** DEMO_VIDEO_LINK
-- **How it is deployed:** [DEPLOYMENT.md](DEPLOYMENT.md) · **Teardown and cost:** [CLEANUP.md](CLEANUP.md) · **Changes:** [CHANGELOG.md](CHANGELOG.md)
-
-```bash
-curl -s https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/health
-# {"status":"ok","model_loaded":true,"model_version":"pipeline.joblib"}
-```
-
 ## Phase Deliverables
 
 ### Phase 1: Project Design & Model Development
@@ -83,7 +95,7 @@ curl -s https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/health
 
 ### Phase 3: CI/CD & Deployment
 
-- See [PHASE3.md](PHASE3.md) for detailed checklist
+- See [PHASE3.md](PHASE3.md) for the checklist with evidence, and [Phase 3: CI/CD, CML and Cloud Deployment](#phase-3-cicd-cml-and-cloud-deployment) below for a summary
 
 ## Model Configuration
 
@@ -352,10 +364,22 @@ open htmlcov/index.html
 pre-commit run --all-files
 ```
 
-Data-dependent tests (`test_data_quality.py`, `test_training_pipeline.py`) skip
-automatically when `data/raw/zomato_dataset.csv` or `data/processed/*.csv` are
-missing. Run `make data` first to execute them. In CI the same checks run on
-every PR through `.github/workflows/pr-checks.yml`.
+75 tests, 86% line coverage. What they cover:
+
+| Area | Tests |
+| --- | --- |
+| Data processing | `test_data_loaders.py`, `test_temportal_split.py`, `test_data_quality.py` (real dataset), `test_features.py` (custom transformers) |
+| Training | `test_training_pipeline.py`, `test_model.py` |
+| Evaluation | `test_evaluation.py`, `test_end_to_end.py` |
+| Serving | `test_api.py` (FastAPI through `TestClient`, CORS) |
+
+`test_end_to_end.py` runs the whole workflow (temporal split, training,
+evaluation in all three selection modes, batch prediction, feature importance)
+on a small synthetic dataset in a temp directory, so it needs no data or
+network. Data-dependent tests (`test_data_quality.py`,
+`test_training_pipeline.py`) skip automatically when `data/raw/zomato_dataset.csv`
+or `data/processed/*.csv` are missing; run `make data` first to execute them.
+In CI the same checks run on every PR through `.github/workflows/pr-checks.yml`.
 
 ### 🔧 Troubleshooting
 
@@ -371,6 +395,27 @@ every PR through `.github/workflows/pr-checks.yml`.
 | Duplicate log lines in the console | `setup_logging()` called more than once (Hydra + API startup) | Fixed: `setup_logging()` now clears existing handlers before adding new ones |
 | API `/predict` returns 503 | No model found at `MODEL_PATH` / `MODEL_URI` | Set `MODEL_PATH=models/pipeline.joblib` (the API image does this by default) |
 | Docker build fails on Apple Silicon when deploying to Cloud Run | Image built for arm64, Cloud Run needs amd64 | Build with `docker build --platform linux/amd64 ...` or use Cloud Build |
+
+## Phase 3: CI/CD, CML and Cloud Deployment
+
+Demo recording and live links: [top of this page](#demo-and-live-deployment).
+Evidence for every item: [PHASE3.md](PHASE3.md). How to reproduce it:
+[DEPLOYMENT.md](DEPLOYMENT.md). How to tear it down: [CLEANUP.md](CLEANUP.md).
+
+| Piece | Tool / service | Where |
+| --- | --- | --- |
+| Tests | pytest, 75 tests, 86% coverage | `tests/`, section [Testing](#-testing) |
+| CI | GitHub Actions: branch rules, ruff, mypy, pytest on 3.11 and 3.12, Docker build + smoke test | `.github/workflows/pr-checks.yml` |
+| Pre-commit | ruff, ruff-format, mypy, whitespace, YAML | `.pre-commit-config.yaml` |
+| CML | Trains on every PR, posts metrics and a baseline comparison as a PR comment | `.github/workflows/cml.yml`, `docs/cml.md` |
+| Image registry | GCP Artifact Registry (`api` and `train` images, tagged by commit) | `.github/workflows/deploy.yml` |
+| Cloud training | Vertex AI custom job, data and models in Cloud Storage | `scripts/gcp_extras.sh`, `scripts/upload_artifacts.py` |
+| Serving | FastAPI on Cloud Run, plus the same model as a Cloud Function | `src/food_on_the_fly/api/`, `deploy/cloud_function/` |
+| UI | Hugging Face Space calling the Cloud Run API, redeployed by GitHub Actions | `app/index.html`, `.github/workflows/deploy-hf.yml` |
+| Monitoring | Cloud Logging, Cloud Monitoring dashboard, 5xx alert | `deploy/monitoring/`, `scripts/gcp_monitoring.sh` |
+| Auth | Workload Identity Federation, no service account keys | `scripts/gcp_setup.sh` |
+
+Diagrams for each of these are in [docs/architecture.md](docs/architecture.md).
 
 ## Setup Instructions
 
@@ -580,7 +625,7 @@ make docs
 | **Jose Muniz** | Project lead, platform | Repo scaffold, CI with ruff/mypy/pytest, feature→dev→main branch rules, README and PHASE1 drafts, `REPORT.md` (#21, #22, #23) | Training pipeline integration (#25), monitoring + cProfile profiling + Hydra sweep + Rich logging (#30) | FastAPI inference service with `/health`, `/predict`, `/predict/batch` (#48) |
 | **Aviv Katz** | Training pipeline, CML, Docker | Hydra + MLflow + XGBoost integration (#16) | Temporal features (#27, #28), MLflow system metrics, Python 3.11 base image (#36), multi-model configs (#37), rotating file logs (#40) | CML workflow (#44), version-tag deploy trigger (#46), Phase 3 docs (#43), config toggles + leakage-safe temporal split (#52), temporal features v2 (#50) |
 | **Imran Ahmed** | Data, testing, UI | EDA notebook (#20) | Data quality tests (#32), feature transformer tests (#33) | Load test script (#55), data card + feature dictionary (#58), Gradio UI (#59), concept drift simulation (#60) |
-| **Abdul Momin** | Modeling lead | Baseline MLflow tracking script (#18) | Profiling-driven `log_model` optimization (#42) | Current-vs-baseline CML comparison (#53), CML docs (#56); v1.1.0 completion: CI Docker build + smoke test, Python 3.12 matrix, deploy and logging fixes, HTTP API and architecture docs, Phase 1-3 evidence audit |
+| **Abdul Momin** | Modeling lead | Baseline MLflow tracking script (#18) | Profiling-driven `log_model` optimization (#42) | Current-vs-baseline CML comparison (#53), CML docs (#56); v1.1.0 completion: CI Docker build + smoke test, Python 3.12 matrix, deploy and logging fixes, HTTP API and architecture docs, Phase 1-3 evidence audit; v1.2.0: GCP project and Cloud Run deployment, Vertex AI training job, Cloud Function, Hugging Face Space, monitoring, end-to-end tests |
 
 PR numbers link to the merged pull requests in the original team repository
 (`josemunizdev/food_on_the_fly`). Full history, with each author on their own

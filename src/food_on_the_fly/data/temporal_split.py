@@ -213,7 +213,7 @@ def main(cfg: DictConfig) -> None:
     logger.info("=" * 80)
     logger.info("Next steps:")
     logger.info("1. Train model: make train")
-    logger.info("2. Analyze drift: python -m food_on_the_fly.analysis.drift_detection")
+    logger.info("2. Evaluate on the test split: make evaluate")
 
 
 if __name__ == "__main__":

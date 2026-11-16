@@ -56,5 +56,3 @@ Sun Nov 15 16:10:01 2026    reports/profiling/train_model.prof
         4    0.000    0.000    0.565    0.141 matplotlib/backend_bases.py:2051(print_figure)
         1    0.001    0.001    0.549    0.549 scipy/stats/_stats_py.py:1(<module>)
         1    0.000    0.000    0.534    0.534 mlflow/utils/environment.py:744(_process_pip_requirements)
-
-

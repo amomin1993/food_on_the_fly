@@ -158,7 +158,7 @@ paths:
 2026-11-15 16:11:00 | INFO     | __main__ |   RMSE: 4.73 minutes
 2026-11-15 16:11:00 | INFO     | __main__ |   MAE:  3.76 minutes
 2026-11-15 16:11:00 | INFO     | __main__ |   R²:   0.7418
-2026-11-15 16:11:00 | INFO     | __main__ | 
+2026-11-15 16:11:00 | INFO     | __main__ |
 2026-11-15 16:11:00 | INFO     | __main__ | VALIDATION METRICS
 2026-11-15 16:11:00 | INFO     | __main__ |   RMSE: 4.83 minutes
 2026-11-15 16:11:00 | INFO     | __main__ |   MAE:  3.81 minutes

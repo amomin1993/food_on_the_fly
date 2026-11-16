@@ -98,7 +98,7 @@ make predict
 With custom inputs:
 
 ```bash
-python -m food_on_the_fly.predict_model --model-path models/model.pkl --input data/test.csv
+python -m food_on_the_fly.predict_model --model-path models/pipeline.joblib --input data/processed/test.csv
 ```
 
 ## Development Workflow
