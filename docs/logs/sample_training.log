@@ -1,3 +1,5 @@
+# Captured 2026-11-15 with the splits already in data/processed, before
+# data.source_uri moved to gs://food-on-the-fly-data-amomin (not read in this run).
 2026-11-15 16:10:59 | INFO     | __main__ | Starting training with config:
 model:
   name: baseline

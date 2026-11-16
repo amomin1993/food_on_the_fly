@@ -14,7 +14,7 @@ region `us-central1`.
 | Runtime identity | `fof-api-runtime@food-on-the-fly.iam.gserviceaccount.com` (no roles; the model is baked into the image) |
 | CI/CD identity | `github-deployer@food-on-the-fly.iam.gserviceaccount.com` via Workload Identity Federation (no JSON keys) |
 | Dataset for CI | `gs://food-on-the-fly-data-amomin/data/raw/zomato_dataset.csv` |
-| Cloud Function | https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict (section 10) |
+| Cloud Function | https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict (deleted 2026-11-15 after the demo; section 10) |
 | Hugging Face Space | https://huggingface.co/spaces/amomin1993/food-on-the-fly (section 10) |
 | Vertex AI training | `scripts/gcp_extras.sh`, models in `gs://food-on-the-fly-data-amomin/models/` (section 10) |
 
@@ -217,6 +217,9 @@ R² 0.823. Most of the 16 minutes was waiting for the machine; training itself
 took under a minute.
 
 ### Cloud Function
+
+Deleted on 2026-11-15 after the demo was recorded (see `CLEANUP.md`). The
+details below describe how it ran; `scripts/gcp_extras.sh` redeploys it.
 
 | Piece | Value |
 | --- | --- |
