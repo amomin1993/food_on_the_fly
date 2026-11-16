@@ -12,10 +12,13 @@ A food delivery prediction AI for estimated delivery times
 
 ## Demo and Live Deployment
 
-- **Demo video:** DEMO_VIDEO_LINK
+- **Demo video:** https://www.youtube.com/watch?v=dnUN4Xo9UOI
+
+  [![Food on the Fly demo](https://img.youtube.com/vi/dnUN4Xo9UOI/hqdefault.jpg)](https://www.youtube.com/watch?v=dnUN4Xo9UOI)
+
 - **Web app (Hugging Face Space):** https://huggingface.co/spaces/amomin1993/food-on-the-fly
 - **Prediction API (Cloud Run):** https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app (interactive docs at [`/docs`](https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/docs))
-- **Serverless endpoint (Cloud Functions):** https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict
+- **Serverless endpoint (Cloud Functions):** https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict (deleted on 2026-11-15 after the demo as part of the cleanup; see the dated screenshot and sample response in [PHASE3.md](PHASE3.md))
 - **Cloud training (Vertex AI):** custom job reading data from Cloud Storage, models in `gs://food-on-the-fly-data-amomin/models/`
 - **How it is deployed:** [DEPLOYMENT.md](DEPLOYMENT.md) · **Teardown and cost:** [CLEANUP.md](CLEANUP.md) · **Changes:** [CHANGELOG.md](CHANGELOG.md)
 

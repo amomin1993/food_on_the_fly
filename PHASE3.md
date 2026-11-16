@@ -55,7 +55,7 @@ One entry per item of the Phase 3 template, each with the files, a screenshot, a
 ### 3.3 FastAPI + Cloud Functions
 
 - **Files:** `src/food_on_the_fly/api/` (FastAPI app and schemas), `deploy/cloud_function/main.py`
-- **Live endpoint:** https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict
+- **Live endpoint:** https://us-central1-food-on-the-fly.cloudfunctions.net/fof-predict (deleted on 2026-11-15 after the demo, see 6.3; the screenshot and sample below are from before the cleanup)
 - **Sample:**
 
   ```bash
