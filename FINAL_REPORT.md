@@ -8,6 +8,8 @@
 
 **Live app:** https://huggingface.co/spaces/amomin1993/food-on-the-fly
 
+**Demo video:** https://www.youtube.com/watch?v=dnUN4Xo9UOI
+
 **Team (Spring 2026):** Jose Muniz (project lead, platform), Aviv Katz (training pipeline, CML, Docker), Imran Ahmed (data, tests, load testing, UI), Abdul Momin (modeling, profiling, CML comparison)
 
 This report covers all three phases in one document! Phases 1 and 2 and most of Phase 3 were built by the team (including me) in the spring. I finished the outstanding Phase 3 work and the documentation fixes for the rest of the phases on my own in November, in a fork of the team repository so the full commit history and authorship history are kept. Section 5 lists what changed in that completion pass. The detailed checklists with evidence for every item are in `PHASE1.md`, `PHASE2.md` and `PHASE3.md` in the repository. Thank you sincerely for giving me a chance to bring this to completion. I had fun doing this.
@@ -190,7 +192,7 @@ A second script, 'scripts/gcp_extras.sh', covers the rest of Phase 3:
 2. Median latency 32 ms, p95 39 ms, p99 51 ms
 3. One instance handled the whole load
 
-The only slow requests are cold starts after the service has scaled to zero, which take a few seconds. For a real delivery app I would keep one instance warm.
+The only slow requests are cold starts after the service has scaled to zero, which took 10 to 16 seconds when I checked. For a real delivery app I would keep one instance warm.
 
 **Monitoring.**
 
@@ -224,11 +226,11 @@ The biggest lesson was that an MLOps project fails quietly! Nothing crashed when
 
 The second lesson is about documentation. A checklist ticked without evidence is worse than one left blank, because the next person trusts it. Rewriting the phase documents so every claim points at a file or a run took longer than some of the code changes, and it found real bugs along the way.
 
-The third is that cloud services change under you. In one evening:
+The third is that cloud services change under you. In one evening I ran into three of these:
 
 1. CML's image host started failing
-2. Hugging Face moved Gradio Spaces to a paid plan
-3. The map tile provider began requiring an API key
+2. Gradio Spaces on Hugging Face turned out to need a paid plan
+3. The map tiles I had planned to use needed an API key
 
 None of these were bugs in our code, and each needed a small, documented workaround.
 

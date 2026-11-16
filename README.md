@@ -517,7 +517,7 @@ food_on_the_fly/                  # Repository root
 ├── src/
 │   └── food_on_the_fly/          # Importable Python package
 │       ├── __init__.py                # Version + package metadata
-│       ├── config.py                  # Paths & typed config (PROJECT_ROOT, TrainingConfig, ...)
+│       ├── config.py                  # Paths & config loader (PROJECT_ROOT, load_config, ...)
 │       ├── logging_config.py          # setup_logging() + get_logger()
 │       ├── data/
 │       │   ├── __init__.py
