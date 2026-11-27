@@ -10,6 +10,8 @@
 
 **Demo video:** https://www.youtube.com/watch?v=dnUN4Xo9UOI
 
+**One report per phase:** [Phase 1](REPORT_PHASE1.md), [Phase 2](REPORT_PHASE2.md), [Phase 3](REPORT_PHASE3.md)
+
 **Team (Spring 2026):** Jose Muniz (project lead, platform), Aviv Katz (training pipeline, CML, Docker), Imran Ahmed (data, tests, load testing, UI), Abdul Momin (modeling, profiling, CML comparison)
 
 This report covers all three phases in one document! Phases 1 and 2 and most of Phase 3 were built by the team (including me) in the spring. I finished the outstanding Phase 3 work and the documentation fixes for the rest of the phases on my own in November, in a fork of the team repository so the full commit history and authorship history are kept. Section 5 lists what changed in that completion pass. The detailed checklists with evidence for every item are in `PHASE1.md`, `PHASE2.md` and `PHASE3.md` in the repository. Thank you sincerely for giving me a chance to bring this to completion. I had fun doing this.

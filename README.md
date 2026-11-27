@@ -8,7 +8,7 @@
 
 A food delivery prediction AI for estimated delivery times
 
-**Status:** complete, final submission (November 2026). Phases 1 and 2 and most of Phase 3 were built by the team in spring 2026. The Phase 3 deployment, evidence and final report were completed by Abdul Momin in this fork; see [Team Contributions](#team-contributions) and [FINAL_REPORT.md](FINAL_REPORT.md).
+**Status:** complete, final submission (November 2026). Phases 1 and 2 and most of Phase 3 were built by the team in spring 2026. The Phase 3 deployment, evidence and reports were completed by Abdul Momin in this fork. What is mine is listed under [My Contributions](#my-contributions-abdul-momin), and there is one report per phase: [Phase 1](REPORT_PHASE1.md), [Phase 2](REPORT_PHASE2.md), [Phase 3](REPORT_PHASE3.md).
 
 ## Demo and Live Deployment
 
@@ -27,6 +27,70 @@ curl -s https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/health
 # {"status":"ok","model_loaded":true,"model_version":"pipeline.joblib"}
 ```
 
+## My Contributions (Abdul Momin)
+
+This section lists everything I did on the project, so that it can be matched against what the team submitted back in the spring. The team repo is [josemunizdev/food_on_the_fly](https://github.com/josemunizdev/food_on_the_fly). Phase 2 was graded there on `main` at commit [`2790cb1`](https://github.com/josemunizdev/food_on_the_fly/commit/2790cb1) (May 21) and Phase 3 on `dev` at commit [`0abb8cc`](https://github.com/josemunizdev/food_on_the_fly/commit/0abb8cc) (June 8). This fork keeps that whole history (every author is still on their own commits) and my November work sits on top of it.
+
+**Reports, one per phase**
+
+| Phase | Report | Checklist with evidence |
+| --- | --- | --- |
+| 1 | [REPORT_PHASE1.md](REPORT_PHASE1.md) | [PHASE1.md](PHASE1.md) |
+| 2 | [REPORT_PHASE2.md](REPORT_PHASE2.md) | [PHASE2.md](PHASE2.md) |
+| 3 | [REPORT_PHASE3.md](REPORT_PHASE3.md) | [PHASE3.md](PHASE3.md) |
+
+Each report has a side by side of the spring submission vs this repo, and goes through the grading feedback item by item. The team's own spring write-up is still here as [REPORT.md](REPORT.md), I did not touch it.
+
+**How to compare with the spring submission**
+
+1. [Everything added since the team's last commit](https://github.com/josemunizdev/food_on_the_fly/compare/dev...amomin1993:food_on_the_fly:main): 12 commits and 82 changed files, all by me
+2. [My pull requests in the team repository](https://github.com/josemunizdev/food_on_the_fly/pulls?q=is%3Apr+author%3Aamomin1993) from the spring
+3. [My pull requests in this fork](https://github.com/amomin1993/food_on_the_fly/pulls?q=is%3Apr+is%3Amerged) from November (#1 to #8)
+
+**Spring 2026, as part of the team**
+
+| PR | Date | Phase | What it added |
+| --- | --- | --- | --- |
+| [#18](https://github.com/josemunizdev/food_on_the_fly/pull/18) | May 7 | 1 | First MLflow tracking script: a linear regression on synthetic delivery data, logging its parameters and metrics. Removed in #40 once the XGBoost pipeline replaced it |
+| [#42](https://github.com/josemunizdev/food_on_the_fly/pull/42) | May 28 | 2 | First cProfile output in `reports/profiling/` and the `log_model` optimization (explicit `pip_requirements`) in `train_model.py` |
+| [#53](https://github.com/josemunizdev/food_on_the_fly/pull/53) | June 7 | 3 | Current vs baseline comparison in the CML report: `scripts/compare_to_baseline.py`, `reports/baseline_metrics.json` and the step in `.github/workflows/cml.yml` |
+| [#56](https://github.com/josemunizdev/food_on_the_fly/pull/56) | June 7 | 3 | `docs/cml.md`, the setup and customization guide for the CML workflow |
+
+I also had four pull requests there that were closed without merging: #17 (resubmitted as #18), #41 (a rotating file handler, it went in through #40 instead), #57 (an update to `PHASE3.md`) and #62 (opened against the team repo by mistake in November).
+
+**November 2026, on my own (PRs #1 to #8 in this fork)**
+
+Phase 1:
+
+1. `PHASE1.md` checklist completed with evidence (36 to 45 of 46 items checked)
+2. Contribution summary and team table in this README filled in
+3. CI/CD and PR testing rules in `CONTRIBUTING.md`
+4. `predict_model.py` scores a CSV (it was a template stub) and `visualization/visualize.py` holds the evaluation plots (it was unused template code)
+5. `docs/api.md` and `docs/getting_started.md` corrected, `docs/architecture.md` added
+
+Phase 2:
+
+1. Restored my `log_model` optimization after #59 reverted it, with the cloudpickle serializer so training works on current MLflow (`train_model.py`)
+2. Re-measured the profiling, corrected the May figure and added the "before" profile (`reports/profiling/`, `docs/profiling/OPTIMIZATIONS.md`)
+3. Replaced the placeholder evidence in `PHASE2.md` with real files, line ranges and measured results
+4. Fixed duplicate log lines (`logging_config.py`) and removed the unused `training:` block from `configs/model/`
+5. Ran the training container on Vertex AI against a local run of the same config (identical metrics)
+
+Phase 3:
+
+1. Brought `main` up to date with `dev` and fixed the failing CI
+2. Docker build and API smoke test job, Python 3.12 in the test matrix (`.github/workflows/pr-checks.yml`)
+3. `tests/test_end_to_end.py` and the CORS tests, coverage 34% to 86%
+4. My own GCP project: `scripts/gcp_setup.sh`, Workload Identity Federation, the Cloud Run deployment working from GitHub Actions, and the fix so the API image serves the committed model
+5. Vertex AI training job (`scripts/gcp_extras.sh`, `scripts/upload_artifacts.py`)
+6. Cloud Function (`deploy/cloud_function/`)
+7. Hugging Face Space (`app/index.html`), CORS on the API, and the Gradio app changed so it can call the API
+8. Monitoring dashboard and 5xx alert (`deploy/monitoring/`, `scripts/gcp_monitoring.sh`) and the load test against the live service
+9. `DEPLOYMENT.md`, `CLEANUP.md`, `CHANGELOG.md`, `docs/http_api.md`, and `PHASE3.md` with 14 screenshots (15 to 123 of 129 items checked)
+10. The demo recording at the top of this page
+
+The per-member table for the whole team is under [Team Contributions](#team-contributions).
+
 ## Team Information
 
 - **Project Lead:** YesChef (jose.muniz@depaul.edu)
@@ -38,7 +102,7 @@ curl -s https://food-on-the-fly-api-hhwrf2nw2a-uc.a.run.app/health
 
 ## Project Overview
 
-Food on the Fly is an end-to-end MLOps project that predicts food delivery times for the Zomato delivery network. Using historical delivery data — including GPS coordinates, weather, traffic density, and vehicle type — the system trains a regression model to estimate time-to-delivery in minutes. The pipeline is designed for reproducibility, continuous integration, and eventual deployment as an API service.
+Food on the Fly is an end-to-end MLOps project that predicts food delivery times for the Zomato delivery network. Using historical delivery data, including GPS coordinates, weather, traffic density, and vehicle type, the system trains a regression model to estimate time-to-delivery in minutes. The pipeline is designed for reproducibility, continuous integration, and eventual deployment as an API service.
 
 **Key Objectives:**
 
@@ -87,14 +151,17 @@ Detailed data, training, serving and CI/CD diagrams are in [docs/architecture.md
 
 ### Phase 1: Project Design & Model Development
 
+- Report: [REPORT_PHASE1.md](REPORT_PHASE1.md)
 - See [PHASE1.md](PHASE1.md) for detailed checklist
 
 ### Phase 2: Containerization & Monitoring
 
+- Report: [REPORT_PHASE2.md](REPORT_PHASE2.md)
 - See [PHASE2.md](PHASE2.md) for detailed checklist
 
 ### Phase 3: CI/CD & Deployment
 
+- Report: [REPORT_PHASE3.md](REPORT_PHASE3.md)
 - See [PHASE3.md](PHASE3.md) for the checklist with evidence, and [Phase 3: CI/CD, CML and Cloud Deployment](#phase-3-cicd-cml-and-cloud-deployment) below for a summary
 
 ## Model Configuration
@@ -510,7 +577,7 @@ make help
 
 ## Project Structure
 
-This template uses the modern **`src/` layout** — the importable package lives in `src/food_on_the_fly/`, decoupled from the repository root. That forces `pip install -e .` before imports work, which catches packaging bugs early.
+This template uses the modern **`src/` layout**: the importable package lives in `src/food_on_the_fly/`, decoupled from the repository root. That forces `pip install -e .` before imports work, which catches packaging bugs early.
 
 ```
 food_on_the_fly/                  # Repository root
@@ -585,7 +652,7 @@ food_on_the_fly/                  # Repository root
 | Catches packaging bugs early            | ✅                                        | ❌                           |
 | Adopted by                              | attrs, httpx, pydantic, flask, sqlalchemy | Older data-science templates |
 
-Data and model artifacts are accessed via the constants in `food_on_the_fly.config` (`PROJECT_ROOT`, `DATA_DIR`, `MODELS_DIR`, …) rather than relative paths — code is independent of where you invoke it from.
+Data and model artifacts are accessed via the constants in `food_on_the_fly.config` (`PROJECT_ROOT`, `DATA_DIR`, `MODELS_DIR`, …) rather than relative paths. Code is independent of where you invoke it from.
 
 ## Common Commands
 
@@ -645,9 +712,9 @@ commits, is preserved in this fork.
 ## References
 
 - [Project Documentation](docs/index.md)
-- [Phase 1 — Project Design & Model Development](PHASE1.md)
-- [Phase 2 — Containerization & Monitoring](PHASE2.md)
-- [Phase 3 — CI/CD & Deployment](PHASE3.md)
+- [Phase 1: Project Design & Model Development](PHASE1.md)
+- [Phase 2: Containerization & Monitoring](PHASE2.md)
+- [Phase 3: CI/CD & Deployment](PHASE3.md)
 
 ## License
 
